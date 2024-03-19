@@ -6,7 +6,7 @@ import sys
 
 import numpy as np
 
-sys.path.append('/home/mzx/Pure_GNN/')
+
 
 from deeprobust.graph.data import Dpr2Pyg,Pyg2Dpr
 from deeprobust.graph.data.dataset import get_train_val_test

@@ -4,7 +4,7 @@
 # @File:GCN_1.py
 
 import sys
-sys.path.append('/home/mzx/Pure_GNN/')
+
 
 import torch
 import torch.nn.functional as F

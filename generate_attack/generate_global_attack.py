@@ -8,7 +8,7 @@ gc.collect()
 torch.cuda.empty_cache()
 
 import sys
-sys.path.append('/home/mzx/Pure_GNN/')
+
 from deeprobust.graph.defense import GCN
 from deeprobust.graph.global_attack import PGDAttack,MinMax,DICE,Random,Metattack
 from deeprobust.graph.utils import preprocess

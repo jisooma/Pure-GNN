@@ -4,7 +4,7 @@
 # @File:generate_targeted_attack.py
 
 import sys
-sys.path.append('/home/mzx/Pure_GNN/')
+
 
 
 from deeprobust.graph.defense import GCN,SGC
