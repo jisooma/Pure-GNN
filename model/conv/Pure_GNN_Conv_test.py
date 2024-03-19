@@ -1,10 +1,6 @@
 # _*_codeing=utf-8_*_
-# @Time:2022/11/14  16:29
-# @Author:mazhixiu
-# @File:Pure_GNN_Conv.py
-# _*_codeing=utf-8_*_
 # @Time:2022/10/23  16:45
-# @Author:mazhixiu
+
 # @File:Pure_GNN_Conv.py
 from typing import Optional, Tuple
 
@@ -55,9 +51,7 @@ class Pure_GNN_Conv(MessagePassing):
             self.register_parameter('bias_', None)
 
         # self.lin_src = Linear(in_channels, out_channels, bias=False, weight_initializer='glorot')
-        """
-        消息组件,对传过来的消息进行自适应加权计算
-        """
+
         self.message_component = dict(layer_param.get('message_component')).get('name')
         print(self.message_component)
         self.att_src = None
@@ -70,10 +64,6 @@ class Pure_GNN_Conv(MessagePassing):
             else:
                 self.register_buffer('beta', torch.ones(1))
 
-        """
-        聚合组件：多聚合
-        是否要对传过来的消息进行自适应多聚合
-        """
         self.aggregator_component = dict(layer_param.get('aggegator_component'))
         self.aggregators = self.aggregator_component.get('aggregators')
         self.with_attention = self.aggregator_component.get('with_attention')
@@ -82,9 +72,6 @@ class Pure_GNN_Conv(MessagePassing):
         if self.with_attention and self.attention != None:
             self.attention = ATTENTIONS[self.attention](out_channels, num_hiddens=16)
 
-        """
-        更新组件：
-        """
         self.num_nodes = layer_param.get('num_nodes')
         self.updator_component = layer_param.get('updator_component')
 
@@ -107,10 +94,6 @@ class Pure_GNN_Conv(MessagePassing):
         self._cached_edge_index = None
         self._cached_adj_t = None
 
-        # zeros(self.bias)
-        # self.bias.data.fill_(1)
-        # if self.updator_component == 'initial_x':
-        #     zeros(self.adptive)
         if self.updator_component == 'feature_dense_filter':
             self.df.reset_parameters()
         if self.updator_component == 'feature_sparse_filter':

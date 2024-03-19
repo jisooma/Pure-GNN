@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # @Time    : 2023/4/16 15:20
-# @Author  : zhixiuma
+
 # @File    : Pro_GCN.py
 # @Project : Pure_GNN
 # @Software: PyCharm

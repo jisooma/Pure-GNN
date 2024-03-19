@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # @Time    : 2023/4/16 10:40
-# @Author  : zhixiuma
+
 # @File    : STABLE.py
 # @Project : Pure_GNN
 # @Software: PyCharm

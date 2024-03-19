@@ -1,14 +1,6 @@
 # _*_codeing=utf-8_*_
-# @Time:2022/11/14  17:10
-# @Author:mazhixiu
-# @File:Pure_GNN_5.py
-# _*_codeing=utf-8_*_
-# @Time:2022/10/23  16:45
-# @Author:mazhixiu
-# @File:Pure_GNN_1.py
-# _*_codeing=utf-8_*_
 # @Time:2022/10/3  18:00
-# @Author:mazhixiu
+
 # @File:GCN_1.py
 
 import sys

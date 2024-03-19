@@ -1,6 +1,5 @@
 # _*_codeing=utf-8_*_
 # @Time:2022/4/10  12:05
-# @Author:mazhixiu
 # @File:adj_changes.py
 import sys
 sys.path.append('/home/mzx/TASKS/Pure_GNN/')

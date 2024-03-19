@@ -1,6 +1,5 @@
 # _*_codeing=utf-8_*_
 # @Time:2022/7/9  10:10
-# @Author:mazhixiu
 # @File:utils.py
 
 import sys

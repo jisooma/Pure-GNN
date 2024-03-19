@@ -1,6 +1,6 @@
 # _*_codeing=utf-8_*_
 # @Time:2022/4/1  21:46
-# @Author:mazhixiu
+
 # @File:generate_global_attack.py
 import torch, gc
 

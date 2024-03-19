@@ -1,6 +1,6 @@
 # _*_codeing=utf-8_*_
 # @Time:2022/4/1  18:16
-# @Author:mazhixiu
+
 # @File:generate_targeted_attack.py
 
 import sys
