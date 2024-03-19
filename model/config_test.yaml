@@ -1,0 +1,75 @@
+#device: 'cuda:2'
+# Metattack的cora_ml需要重新跑，
+#targeted_attack: ['SGAttack','Nettack',]
+#targeted_attack: ['SGAttack',]
+targeted_attack: ['Nettack',]
+#targeted_attack: ['SGAttack','Nettack']
+#targeted_attack: ['RND']
+#targeted_attack: ['Nettack','RND']
+
+#global_attack: ['Random']
+#global_attack: ['Dice',]
+#global_attack: ['Dice','Random','Metattack']
+#global_attack: ['Metattack']#
+#global_attack: ['Random']#
+#
+#'uai','blogcatalog','flickr'
+# 'dblp','computers',
+#dataset_list: ['cs','physics','dblp','computers','photo']
+#dataset_list: ['physics',]
+#dataset_list: ['citeseer.yaml','cora_ml']
+#'flickr','cora','citeseer.yaml',
+#dataset_list: ['acm','blogcatalog','uai','flickr']
+#dataset_list: ['cora','cora_ml','citeseer','polblogs','pubmed']
+#,
+#dataset_list: ['cora', 'cora_ml', 'citeseer', 'polblogs', 'pubmed',
+#                    'acm', 'blogcatalog', 'uai','flickr',
+#                    'cs', 'physics', 'dblp', 'computers', 'photo']
+#dataset_list: ['computers',]
+#dataset_list: ['blogcatalog']
+#dataset_list: ['polblogs']
+#dataset_list: ['pubmed',]
+#dataset_list: ['physics']
+#dataset_list: ['dblp',]
+#dataset_list: ['lastfmasia']
+               #[]'photo',]
+#dataset_list: ['photo']
+# 'cora','cora_ml','citeseer',
+# 'pubmed',
+
+#dataset_list: ['flickr']
+#dataset_list: ['blogcatalog']
+
+dataset_list: ['acm']
+#dataset_list: ['citeseer']
+#dataset_list: ['cora']
+#dataset_list: ['cora_ml']
+#dataset_list: [     'cs',
+#    'physics',
+##    'dblp',
+#    'computers',]
+#dataset_list: ['pubmed']
+#dataset_list: ['photo']
+  #'cs','blogcatalog','deezereurope',]
+#dataset_list: ['uai']
+# 'cora', 'cora_ml','citeseer','polblogs','cora',
+#dataset_list: ['acm','uai','citeseer','pubmed','photo','cora_ml',]
+#dataset_list: ['acm','cora_ml','pubmed','photo']
+# ['sum', 'max' ,'min','var']
+
+#save_dir: './output/2023-1-11/attack_acc/'
+#dataset_list: ['citeseer','cora','cora_ml','pubmed',]
+#save_dir: '/home/mzx/CodeSet/Results/attack_acc/'
+
+#save_dir: '/home/mzx/CodeSet/Results/Pure_GNN_3/clean_acc/'
+##save_dir: '/home/mzx/CodeSet/Results/Pure_GNN_3/attack_acc/'
+
+#save_dir: '/home/mzx/CodeSet/Results_test/Pure_GNN_Test/clean_acc/'
+#save_dir: '/home/mzx/Results_2023_4_16/Pure_GNN_Test/attack_acc/'
+#save_dir: '/home/mzx/Results_2023_4_16/Pure_GNN_Test/clean_acc/'
+
+#save_dir: '/home/mzx/Results_2023_5_8//Pure_GNN_Test/attack_acc/'
+save_dir: './attack_acc/'
+#save_dir: '/home/mzx/Results_2023_4_24/Pure_GNN_Test/clean_acc/'
+
+#save_dir: '/home/mzx/Results_2023_4_24//Pure_GNN_Test/hyper_acc/'

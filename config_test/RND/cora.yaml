@@ -1,0 +1,92 @@
+device: 'cuda:0'
+dataset_list: ['cora',]
+save_dir: 'results_1021'
+
+
+feature_graph_dir: '/home/mzx/Code/Pure_GNN_1/feature_graph/'
+train_param:
+  lr: 0.01
+  weight_decay: 5e-4
+
+  epochs: 200
+  initialize: True
+  verbose: True
+  patience: 100
+
+
+model:
+
+  with_relu: True
+  with_bias: True
+
+  hidden_channels: 128
+
+#  subgraph: False
+  original_x: True
+  adaptive: True #
+  n_node: 2485
+
+# gat 性能最好
+  Pure_GNNConv:
+    layer_1:
+      message_component:
+#        name: gcn
+#        name: gat
+#         name: gen_linear
+#        name: cos
+#         name: linear
+        name: cos_sim
+###        name: jac_sim
+        additive:
+          requires_grad: True
+
+
+      aggegator_component:
+#        aggregators: ['sum']
+        # 'median''var','max' ,'min''std',
+        aggregators: ['std','sum',]
+        attention: 'dot'
+        with_attention: True
+      updator_component: const
+#      updator_component: initial_x
+#      updator_component: const_1
+#      updator_component: initial_x
+#      updator_component: linear_x
+#      updator_component: concat_x
+#      updator_component: interpolation_x
+#      updator_component: sparse_filter
+#      updator_component: dense_filter
+#    updator_component: feature_sparse_filter
+#    updator_component: feature_dense_filter
+
+    layer_2:
+      message_component:
+#        name: gcn
+#       name: gat
+#        name: gen_linear
+#         name: linear
+#        name: cos
+        name: cos_sim
+##        name: jac_sim
+        additive:
+          requires_grad: True
+
+      aggegator_component:
+        aggregators: ['sum']
+        # 'median''var','max' ,'min''std',
+#        aggregators: None
+#        aggregators: ['var','sum',]
+#        attention: 'dot'
+#        with_attention: True
+
+      updator_component: const
+#      updator_component: initial_x
+#      updator_component: const_1
+#      updator_component: initial_x
+#      updator_component: linear_x
+#      updator_component: concat_x
+#      updator_component: interpolation_x
+#      updator_component: sparse_filter
+#      updator_component: dense_filter
+#      updator_component: feature_sparse_filter
+#      updator_component: feature_dense_filter

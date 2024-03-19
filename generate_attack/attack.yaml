@@ -1,0 +1,24 @@
+device: 'cuda:2'
+#targeted_attack: ['RND']
+
+targeted_attack: ['Nettack','SGAttack',]#
+#targeted_attack: ['SGAttack','Nettack',]
+#targeted_attack: ['Nettack','RND']#
+global_attack: ['Dice','Random','Metattack']
+#global_attack: ['Metattack']
+
+save_dir: '/home/mzx/DATA/attack_data_428/'
+
+dataset_list: [
+               'acm',
+               'citeseer',
+#               'cora',
+               'cora_ml',
+               'pubmed',
+               'photo',
+                'uai'
+#                'cs'
+#                'physics',
+#                'computers'
+#                ''
+]
