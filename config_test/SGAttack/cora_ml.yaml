@@ -3,7 +3,7 @@ dataset_list: ['cora_ml',]
 save_dir: 'results_1021'
 
 
-feature_graph_dir: '/home/mzx/Code/Pure_GNN_1/feature_graph/'
+
 train_param:
   lr: 0.01
   weight_decay: 5e-4

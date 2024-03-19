@@ -5,7 +5,7 @@ dataset_list: ['photo']
 save_dir: 'results_1021'
 
 
-feature_graph_dir: '/home/mzx/Code/MAGNET_1/feature_graph/'
+
 
 train_param:
   lr: 0.01
@@ -74,7 +74,7 @@ model:
 #        aggregators: ['sum']
         # 'median''var','max' ,'min''std',
 #        aggregators: None
-        # 最优的情况不加注意力机制，只用多聚合器
+
         aggregators: ['sum']
 #        aggregators: ['sum','var',]
 #        attention: 'dot'

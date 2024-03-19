@@ -7,7 +7,7 @@ targeted_attack: ['Nettack','SGAttack',]#
 global_attack: ['Dice','Random','Metattack']
 #global_attack: ['Metattack']
 
-save_dir: '/home/mzx/DATA/attack_data_428/'
+save_dir: './attack_data/'
 
 dataset_list: [
                'acm',

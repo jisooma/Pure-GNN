@@ -149,7 +149,7 @@ class Pure_GNN_Conv(MessagePassing):
        return msg
 
 
-    # 多聚合器
+    #
     def aggregate(self, inputs: Tensor, index: Tensor,
                   ptr: Optional[Tensor] = None,
                   dim_size: Optional[int] = None) -> Tensor:
@@ -158,9 +158,9 @@ class Pure_GNN_Conv(MessagePassing):
             return AGGREGATORS['sum'](inputs, index, dim_size)
 
         outs = [AGGREGATORS[aggr](inputs, index, dim_size) for aggr in self.aggregators]
-        out_stack = torch.stack(outs, dim=1)  # N*M*D' M是聚合器数量
+        out_stack = torch.stack(outs, dim=1)  #
         if self.with_attention:
-            result, aggr_max,alpha = self.attention(out_stack, out_stack, out_stack)  # 在注意层，所有聚合器的聚合结果经过注意力机制之后变成了 N*F‘
+            result, aggr_max,alpha = self.attention(out_stack, out_stack, out_stack)  #
             self.alpha = alpha
         else:
             result = out_stack.sum(1)
@@ -196,11 +196,11 @@ class Pure_GNN_Conv(MessagePassing):
         for aggr in self.aggregators:
             out = matmul(adj_t, x, reduce=aggr)
             out_list.append(out)
-        out_stack = torch.stack(out_list, dim=1)  # N*M*D' M是聚合器数量
+        out_stack = torch.stack(out_list, dim=1)
 
         if self.with_attention:
             result, aggr_max = eval(
-                self.attention(out_stack, out_stack, out_stack))  # 在注意层，所有聚合器的聚合结果经过注意力机制之后变成了 N*F‘
+                self.attention(out_stack, out_stack, out_stack))
         else:
             result = out_stack.sum(1)
         return result
