@@ -89,8 +89,6 @@ def aggregate_trimmed(src:Tensor,index:Tensor,dim_size:Optional[int]):
 
     return out
 
-
-#求方差
 def aggregate_var(src,index,dim_size):
     mean = aggregate_mean(src,index,dim_size)
     mean_squares = aggregate_mean(src*src,index,dim_size)

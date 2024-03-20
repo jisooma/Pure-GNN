@@ -5,9 +5,7 @@
 import sys
 
 import numpy as np
-
-
-
+import torch
 from deeprobust.graph.data import Dpr2Pyg,Pyg2Dpr
 from deeprobust.graph.data.dataset import get_train_val_test
 from utils.set_args import *
@@ -32,7 +30,7 @@ def load_param(filename):
     return param_dict
 
 from torch_scatter import scatter
-def load_subgraph_1_hop_features(data,dataset,attack=None,ptb=None,save_dir='/home/mzx/Code/Pure_GNN_1/subgraph/'):
+def load_subgraph_1_hop_features(data,dataset,attack=None,ptb=None,save_dir='./subgraph/'):
 
     if attack==None:
         path = save_dir
@@ -46,32 +44,24 @@ def load_subgraph_1_hop_features(data,dataset,attack=None,ptb=None,save_dir='/ho
     features = data.features
 
     if not os.path.exists(path+'/subgraph_features_{}.txt'.format(dataset)):
-        # neighbors_features = []
+
         subset_list = []
         for node in nodes_list:
-            # print(node)
+
             subset, edge_index, mapping, edge_mask = pygUtils.k_hop_subgraph(int(node), 1, pyg_data.edge_index)
-            # print(subset)
+
             neighbor_feature_set = data.features[subset]
-            # print(neighbor_feature_set)
-            # t = torch.tensor(neighbor_feature_set.todense())
-            # print(t.shape)
+
             subset_x = drop_perturb_edges(threshold=0.01,features=neighbor_feature_set,
                                                nodes_list=subset,center_node=mapping)
-            # print(fea_x.shape)
-            # neighbors_features.append(fea_x)
-            # print(subset_x)
+
 
             subset_list.append(subset_x)
-            # break
 
         edge_index_pre = merge_subgraph(subset_list)
-        # print(edge_index_pre)
+
         edge_index_fea = merge_subgraph_features(edge_index_pre,features)
-        # print(edge_index_fea.shape)
-        # print(path)
-        # print(type(edge_index_pre))
-        # print(type(edge_index_fea))
+
         np.savetxt(path+'/subgraph_features_{}.txt'.format(dataset),edge_index_fea)
         np.savetxt(path+'/subgraph_adj_{}.txt'.format(dataset),edge_index_pre)
 
@@ -81,64 +71,41 @@ def load_subgraph_1_hop_features(data,dataset,attack=None,ptb=None,save_dir='/ho
         return x_pre
     else:
         print('loading subgraph')
-        # edge_index_fea = np.loadtxt(path+'/subgraph_features_{}.txt'.format(dataset))
-        # edge_index_pre = np.loadtxt(path + '/subgraph_adj_{}.txt'.format(dataset))
-        # x_pre = scatter(torch.FloatTensor(edge_index_fea), index=torch.LongTensor(edge_index_pre), dim=-2, reduce='sum')
-        # np.savetxt(path + '/subgraph_x_pre_{}.txt'.format(dataset), x_pre)
-        # print('start')
         x_pre = np.loadtxt(path + '/subgraph_x_pre_{}.txt'.format(dataset))
         return x_pre
 
 
-# 带了自环
 def merge_subgraph(subset_list):
     edge_index = []
-    # print(subset_list)
     for i in subset_list:
         edge_index.extend(i)
-    # print(edge_index)
     return edge_index
 
 def merge_subgraph_features(edge_index_pre,features):
 
     features_j = []
-    # print(edge_index_pre)
-    # print(features.shape)
     for i in edge_index_pre:
-
         if type(features) is not np.ndarray:
-            # print('csr')
             features_j.append(features[i].todense())
-            # features_j =  np.array(features_j).squeeze(axis=1)
         else:
-            # print('np')
-            # print(features[i].shape)
             features_j.append(features[i])
-            # print(np.array(features_j.shape))
-            # features_j =  np.array(features_j)
 
     if type(features) is not np.ndarray:
         return np.array(features_j).squeeze(axis=1)
-
     else:
         return np.array(features_j)
 
 def drop_perturb_edges(threshold,features,nodes_list,center_node,binary_features=True):
-    #
-    # print(type(features))
+
     if type(features) is not np.ndarray:
         features = features.toarray()
     center_node_feature = features[center_node]
-    # fea_x = features
-    # subset_x = []
-    # print(nodes_list)
+
     all_nodes_list = nodes_list.tolist()
     nodes_list = nodes_list.tolist()
-    # print(nodes_list)
+
     for node in range(len(nodes_list)):
         if binary_features:
-            # print(center_node_feature.shape)
-            # print(features[node].shape)
             J = jaccard_similarity(center_node_feature,features[node])
             if J < threshold:
                 nodes_list.remove(all_nodes_list[node])
@@ -146,7 +113,6 @@ def drop_perturb_edges(threshold,features,nodes_list,center_node,binary_features
             C = cosine_similarity(center_node_feature,features[node])
             if C < threshold:
                 nodes_list.remove(nodes_list[node])
-    # print(nodes_list)
     return nodes_list
 
 def jaccard_similarity(a,b):
@@ -165,7 +131,6 @@ def cosine_similarity(a,b):
     inner_product = (a*b).sum()
     C = inner_product/(np.sqrt(np.square(a).sum())*np.sqrt(np.square(b).sum())+1e-10)
     return C
-
 
 
 def judge_dir(path):
@@ -190,9 +155,6 @@ def accuracy_with_attack_nodes(output, labels):
     float
         accuracy
     """
-    # print(output.shape) # torch.Size([5990, 8])
-    # print(labels.shape) # torch.Size([5990])
-    # print(len(test_mask.nonzero())) # torch.Size([7487])
 
     if not hasattr(labels, '__len__'):
         labels = [labels]
@@ -222,9 +184,7 @@ def accuracy_with_error_classify_nodes(output, labels,test_mask):
     float
         accuracy
     """
-    # print(output.shape) # torch.Size([5990, 8])
-    # print(labels.shape) # torch.Size([5990])
-    print(len(test_mask.nonzero())) # torch.Size([7487])
+    print(len(test_mask.nonzero()))
 
     if not hasattr(labels, '__len__'):
         labels = [labels]
@@ -237,9 +197,8 @@ def accuracy_with_error_classify_nodes(output, labels,test_mask):
     error_class = torch.nonzero(correct == 0)
     error_class_mask = torch.zeros(len(test_mask))
     error_class_mask[error_class] = 1
-    # print(len(error_class))
+
     correct = correct.sum()
-    # print(correct)
     return correct / len(labels),error_class,error_class_mask
 
 
@@ -250,19 +209,7 @@ def dir_(dir):
 experiment_attention_dir = './attention_distribution/'
 
 def save_aggr_distribution(model,dataset,layer,aggregators,attention,aggr_max,attack=None,ptb=None):
-    """
-    保存某个数据集的聚合器的注意力分布
-    :param dataset: 哪个数据集下的分布
-    :param layer: 第几层的
-    :param aggregators: 那几个聚合器的分布
-    :param attention: 哪个注意力机制下的
-    :param aggr_max: 分布是什么
-    :param attack: 攻击
-    :param ptb: 扰动比率
-    :return:
-    """
-    # print(aggr_max)
-    # print(model)
+
     path = experiment_attention_dir+model
     if not os.path.exists(path):
         os.makedirs(path)
@@ -298,13 +245,6 @@ def from_scipy_sparse_matrix(A):
     return edge_index, edge_weight
 
 
-# clean_dataset_dir ='/home/mzx/CodeSet/DATA/clean_data/'
-# # attack_data_dir ='/home/mzx/CodeSet/DATA/attack_data/'
-#
-# # clean_dataset_dir ='/home/mzx/Code/MAGNET_1/clean_data/'
-# attack_data_dir ='/home/mzx/Code/MAGNET_v3/attack_data_1204/'
-
-
 class Dataset_Attack():
     def __init__(self,dataset):
         self.dataset = dataset
@@ -321,16 +261,13 @@ class Dataset_Attack():
             self.labels.shape,self.idx_train.shape,self.idx_val.shape,self.idx_test.shape)
 
 from utils.set_args import *
-# from cut_data import cutDataSet
 from deeprobust.graph.data import Dataset
 import networkx as nx
 from torch_geometric.data import Data
 from torch_geometric.utils import to_networkx, subgraph
 
 class Dataset_():
-    """
-    # 模仿dpr写的数据集读取形式
-    """
+    print(clean_dataset_dir)
     def __init__(self,clean_dir=clean_dataset_dir,
                  dataset='cora',
                  attack=None,
@@ -339,19 +276,7 @@ class Dataset_():
                  largest_component=True,
                  is_cut=True,
                  num_nodes_dict=cut_n_dict_2):
-        """
-        数据集读取类（clean/attack）
-        :param clean_dir: 干净数据集保存目录
-        :param dataset: 数据集
-        :param attack: 攻击类型
-        :param attack_dir: 攻击数据集保存目录
-        :param largest_component: 是否读取最大联通组件
-        :param ptb: 攻击扰动比率
-        :param is_cut: 是否切割数据集
-        :param num_nodes_dict: 保存的节点数量
-        """
-        print(attack_dir)
-        print(clean_dir)
+
         self.clean_dir = clean_dir
         self.dataset = dataset.lower()
 
@@ -387,7 +312,6 @@ class Dataset_():
     def is_largest_component(self,pyg_data):
         nx_data = to_networkx(pyg_data, to_undirected=True)
         flag = nx.is_connected(nx_data)
-        print(flag)
         return nx_data,flag
 
     def load_largest_component(self,nx_data,data):
@@ -396,20 +320,13 @@ class Dataset_():
         largest_cc = list(largest_cc)
         num_nodes = len(largest_cc)
         features = np.array(data.x[largest_cc])
-        # print(features.shape)
         row, col = np.nonzero(features)
-        # print(len(row))
         values = features[row, col]
-        # print(len(values))
-        # print(len())
         features = sp.csr_matrix((values, (row, col)), shape=features.shape)
-
         labels = np.array(data.y[largest_cc])
-        # print(len(labels))
-        # print(len(data.edge_index[0]))
+
         subset = torch.LongTensor(largest_cc)
         edge_index, edge_mask = subgraph(subset=subset, edge_index=data.edge_index,relabel_nodes=True)
-        # print(len(edge_index[0]))
         idx_train, idx_val, idx_test = get_train_val_test(
             len(labels), val_size=0.1, test_size=0.8, stratify=labels, seed=15)
         adj = pygUtils.to_scipy_sparse_matrix(edge_index).tocsr()
@@ -425,40 +342,9 @@ class Dataset_():
             print(pyg_data)
         elif name =='computers' or name=='photo':
             pyg_data = Amazon(root=clean_dataset_dir,name=name)
-            print(pyg_data)
-        # elif name == 'emaileucore':
-        #     pyg_data = EmailEUCore(root=clean_dataset_dir + '/emaileucore').data
-        # elif name == 'deezereurope':
-        #     pyg_data = DeezerEurope(root=clean_dataset_dir + '/deezereurope').data
-        #     print(pyg_data)
-        # elif name == 'usa' or name == 'brazil' or name == 'europe':
-        #     pyg_data = Airports(root=clean_dataset_dir + '/airports', name=name).data
-        #     print(pyg_data)
-        # elif name == "de" or name == "en" or name == "es" or name == "fr" or name == "pt" or name == "ru":
-        #     name = name.upper()
-        #     print(clean_dataset_dir + './twitch')
-        #     pyg_data = Twitch(root=clean_dataset_dir + './twitch', name=name).data
-        #     print(pyg_data)
-        #
-        #
-        # elif name == 'facebookpagepage':
-        #     pyg_data = FacebookPagePage(root=clean_dataset_dir + '/facebookpagepage').data
-        #     print(pyg_data)
-        # elif name == 'lastfmasia':
-        #     pyg_data = LastFMAsia(root=clean_dataset_dir + '/lastfmasia').data
-        # elif name == 'wikics':
-        #     pyg_data = WikiCS(root=clean_dataset_dir + '/wikics').data
-        # elif name=='actor':
-        #     pyg_data = Actor(root=clean_dataset_dir+'/actor').data
-        #     print(pyg_data)
-        # elif name=='github':
-        #     pyg_data = GitHub(root=clean_dataset_dir+'/github').data
-        #     print(pyg_data)
-
         elif name =='cora' or name=='cora_ml'or name=='citeseer'or name=='polblogs'or name=='pubmed'\
                 or name =='acm' or name=='flicker' or name=='uai' or name=='flickr' or name=='blogcatalog':
             dpr_data = Dataset(root=clean_dataset_dir,name=name,seed=15)
-            # print(dpr_data)
             pyg_data = Dpr2Pyg(dpr_data)
 
         elif name=='meta_photo':
@@ -466,11 +352,10 @@ class Dataset_():
             pyg_data = Amazon(root=clean_dataset_dir,name=name)
             print(pyg_data)
             name = 'meta_photo'
-
         else:
             assert name + "is not be supported！"
 
-        dpr_data = Pyg2Dpr(pyg_data)
+        dpr_data = Pyg2Dpr(pyg_data.data)
         print('loading '+ self.dataset+' dataset.....')
         if self.is_cut:
             if self.attack=='Metattack' and self.dataset=='photo':
@@ -558,7 +443,7 @@ class Dataset_():
     def cutDataSet(self,data, k):
         """
 
-        :param data: 传入的数据集
+        :param data:
         :return:
         """
         print(k)
@@ -612,22 +497,20 @@ def load_attack_nodes(attack,dataset):
         attack_nodes_json = json.load(f1)
         attack_nodes = attack_nodes_json['attacked_test_nodes']
         attack_nodes_sort = np.sort(attack_nodes)
-        # print(attack_nodes_sort)
         return attack_nodes_sort
 
 
 def test_adj(adj_clean,adj_attack):
-    # 增加的边
+
     adj_add = adj_attack-adj_clean
     adj_add_ = (adj_add==1).nonzero()
-    # print(len(adj_add_[0]))
 
-    # 删掉的边
+    # delete
     adj_delete = adj_clean - adj_attack
     adj_delete_ = (adj_delete == 1).nonzero()
     # print(len(adj_delete_[0]))
 
-    # # 没有改变的边
+    # # no change
     # adj_ = adj_attack+adj_clean
     # adj_unchanged_ = (adj_==2).nonzero()
     node_list_1 = np.unique(adj_add_[0])
@@ -724,11 +607,6 @@ def count_degree():
                 p_d_list.append(int(p_d))
                 d_list.append(int(d))
 
-                # 攻击节点在干净图中的度分布
-
-
-                # if dataset=='acm':
-                #     elected_list = [x for x in my_list if x >= 2 and x <= 8]
 
             with open('{}/{}_{}_attacked_nodes_degree.json'.format(save_dir, dataset,attack), 'w') as fp:
                 degree_dict = dict()
@@ -807,25 +685,6 @@ def load_degree():
                 degree_distribution(sorted(attack_degree), attack, dataset+'_attack')
 
 
-def degree_():
-    # for dataset in ['cora_ml', 'citeseer','acm']:
-        pass
-        # clean_data = Dataset_(dataset=dataset,attack=,)
-        # clean_adj = clean_data.adj
-        #
-        # degree = clean_adj.sum(axis=1).squeeze()
-        # print(degree)
-        # degree_distribution(sorted(degree[0]),dataset=dataset)
-
-    # for dataset in ['cora_ml', 'citeseer','acm']:
-    #     clean_data = Dataset_(dataset=dataset, largest_component=True)
-    #     clean_adj = clean_data.adj
-    #
-    #     degree = clean_adj.sum(axis=1).squeeze()
-    #     print(degree)
-    #     degree_distribution(sorted(degree[0]),dataset=dataset)
-
-
 def degree_statics():
     for dataset in [ 'acm','citeseer','cora_ml','uai','pubmed']:
         # pass
@@ -841,19 +700,8 @@ def degree_statics():
         print(np.sum(degree)/len(degree))
 
 
-        # degree_distribution(sorted(degree[0]),dataset=dataset)
-
-    # for dataset in ['cora_ml', 'citeseer','acm']:
-    #     clean_data = Dataset_(dataset=dataset, largest_component=True)
-    #     clean_adj = clean_data.adj
-    #
-    #     degree = clean_adj.sum(axis=1).squeeze()
-    #     print(degree)
-    #     degree_distribution(sorted(degree[0]),dataset=dataset)
-
-
 def load_attack_nodes_5_0(attack,dataset):
-    dir = '/home/mzx/TASKS/Pure_GNN/utils/attack_nodes/'
+    dir = '/'
     attack_node = None
     if attack in ['Dice','Random','Metattack']:
         attacked_node = np.loadtxt('{}/{}_{}_0.25.txt'.format(dir, attack, dataset))
@@ -866,7 +714,7 @@ def load_attack_nodes_5_0(attack,dataset):
 
 
 def load_attack_nodes_degree_5_0(attack,dataset):
-    dir = '/home/mzx/TASKS/Pure_GNN/utils/attack_nodes/'
+    dir = '/'
     with open('{}/{}_{}_attacked_nodes_degree.json'.format(dir, dataset, attack), 'r') as fp:
         data_str = fp.read()
         degree = json.loads(data_str)
@@ -878,81 +726,11 @@ def load_attack_nodes_degree_5_0(attack,dataset):
     return attack_degree
 
 if __name__=='__main__':
-    """
-    各个工具函数的测试
-    :return:
-    """
+
     import warnings
     warnings.filterwarnings('ignore')
 
-    # data = Dataset_(dataset='photo','')
-    # all_attack_nodes()
-    # count_degree()
-    # load_degree()
-    # degree_()
-    # degree_statics()
-    # data = Dataset_(dataset='citeseer')
-    # adj = data.adj
-    # degre = adj.sum(axis=1)
-    # print(degre.shape)
-    # print(len(degre))
-    # print(degre[2041])
-    # # print(data.labels[2041])
-    # print(len(adj.toarray()[2041]))
-    # print(adj.todense()[2041].nonzero())
-    # for neighbor in adj.todense()[2041].nonzero():
-    #     print(data.labels[neighbor])
-    #     for n_2 in adj.todense()[neighbor].nonzero():
-    #         print(data.labels[n_2])
-        # print(degre[2041])
-
-
-    # print('test')
-    # ACM”, “BlogCatalog”, “Flickr”, “UAI”, “Flickr
-    # ['acm', 'blogcatalog', 'uai', 'flickr']
-    # dataset_list = ['cs', 'physics','dblp','computers','photo']
-    # dataset_list  =  ['acm', 'blogcatalog', 'uai', 'flickr']
-    # dataset_list = [
-    #                  # 'cora',
-    #                     # 'cora_ml','citeseer.yaml','polblogs','pubmed',
-    #                 'acm', 'blogcatalog', 'uai', 'flickr',
-    #                 # 'cs', 'physics','dblp', 'computers', 'photo'
-    #                 ]
-    # dataset_list = ['acm','blogcatalog']
-    # dataset_list= ['lastfmasia', 'facebookpagepage', 'deezereurope',  'github',]
-    # dataset_list = ['cora','cora_ml','citeseer','polblogs','pubmed','acm','uai']
-    # dataset_list = ['photo']
-    dataset_list = [ 'acm','citeseer','cora_ml','uai', 'pubmed']
-    # dataset_list = ["DE", "EN", "ES", "FR", "PT", "RU"]
-    # dataset_list = ['usa','brazil']
-    # dataset_list = ['uai','photo']
-    """
-    cs: Data(x=[18333, 6805], edge_index=[2, 163788], y=[18333])  /     Dataset_PureGNN:cs(adj_shape=(11342, 11342), feature_shape=(11342, 6805),labels=(11342,),idx_train=(1133,),idx_val=(1135,),idx_test=(9074,))
-    physics: Data(x=[34493, 8415], edge_index=[2, 495924], y=[34493])/  Dataset_PureGNN:cs(adj_shape=(11342, 11342), feature_shape=(11342, 6805),labels=(11342,),idx_train=(1133,),idx_val=(1135,),idx_test=(9074,)) / 
-    computers: Data(x=[13752, 767], edge_index=[2, 491722], y=[13752])/ Dataset_PureGNN:computers(adj_shape=(4615, 4615), feature_shape=(4615, 767),labels=(4615,),idx_train=(460,),idx_val=(462,),idx_test=(3692,))
-    """
-    # dataset_list = ['cs','physics','computers',]#
-    # dataset_list = ['uai']
+    dataset_list = ['acm','citeseer','cora_ml','uai', 'pubmed','photo'] #
     for dataset in dataset_list:
         data = Dataset_(dataset=dataset)
         print(len(data.adj.nonzero()[0]))
-    #     # print(len(data.adj.nonzero()[0])/len(data.labels))
-    #     # data = Dataset_(dataset=dataset)
-    #     data = Dataset_(dataset=dataset,attack='Metattack',ptb='0.25',largest_component=False)
-    #     print(data)
-    #     # for attack in ['Nettack','SGAttack','RND']:
-    #     #     data = Dataset_(dataset=dataset, attack=attack, ptb='5.0')
-    #     #     print(data)
-    #     #     print(data.features.shape)
-    #     #     # print(type(data.features))
-    #     #     print(type(data.adj))
-    #     #     # print(len(data.adj.nonzero()[0]))
-    #         # t = np.unique(data.labels)
-    #         # print(t)
-
-    # find_attack_nodes_in_global()
-    #
-    # # test_1()
-    # print('\n\n')
-    # test_2()
-    # find_attack_nodes_in_global_1()

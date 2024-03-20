@@ -4,22 +4,14 @@
 # @File:generate_global_attack.py
 import torch, gc
 
-gc.collect()
-torch.cuda.empty_cache()
-
-import sys
 
 from deeprobust.graph.defense import GCN
 from deeprobust.graph.global_attack import PGDAttack,MinMax,DICE,Random,Metattack
 from deeprobust.graph.utils import preprocess
-from utils.set_args import *
 import scipy.sparse as sp
 import os
 from utils.utils_2 import Dataset_
-
-
-# from utils.cut_data import cutDataSet
-# from set_args import cut_n_dict
+import numpy as np
 
 def set_surrogate_model(data):
     # set surrogate conv
@@ -30,9 +22,7 @@ def set_surrogate_model(data):
     surrogate.fit(features, adj, labels, idx_train, idx_val, patience=30)
     return surrogate
 
-"""
-Randomly adding edges to the input graph
-"""
+
 def generate_random_adj(dataset,save_dir):
     adj_dir = os.path.join(save_dir,'Random',dataset)
 
@@ -48,33 +38,23 @@ def generate_random_adj(dataset,save_dir):
         modified_adj = model.modified_adj
 
         save_random_dir ='{}/Random_{}_adj_{}'.format(adj_dir,dataset,round(ptb_rate,3))
-        # save_random_dir = '{}/Random_{}_features_{}'.format(adj_dir, dataset, round(ptb_rate, 3))
         sp.save_npz(save_random_dir,sp.csr_matrix(modified_adj))
 
 def generate_dice_adj(dataset,save_dir):
     adj_dir = os.path.join(save_dir,'Dice',dataset)
     judge_dir(adj_dir)
-    # save_perturb_dir = './perturbation'
+
     data = Dataset_(dataset=dataset)
-    print(data)
+
     adj, features, labels = data.adj, data.features, data.labels
-    # n_perturbations_list = []
     model = DICE()
-    """
-       n_perturbations：边增加或者移动的数量
-               0.05*[1,2,3,4,5]
-       扰动比率：[0.05,0.1,0.15,0.2,0.25]
-       扰动数量：int(0.05 * (i + 1) * (adj.sum() // 2))
-    """
     for i in range(5):
         ptb_rate = 0.05+(i+1)
         n_perturbations = int(ptb_rate* (adj.sum() // 2))
-        # print(n_perturbations)
-        # n_perturbations_list.append(int(n_perturbations))
+
         model.attack(adj,labels,n_perturbations=n_perturbations)
         modified_adj = model.modified_adj
-        # adj = modified_adj
-        # 对抗样本数据集保存
+
         save_dice_dir = '{}/Dice_{}_adj_{}'.format(adj_dir,dataset, round((i + 1) * 0.05, 3))
         sp.save_npz(save_dice_dir,sp.csr_matrix(modified_adj))
         # judge_dir(save_perturb_dir)
@@ -125,13 +105,12 @@ def generate_MinMax_adj(dataset,save_dir):
     for i in range(5):
         data = Dataset_(dataset=dataset)
         adj, features, labels = data.adj, data.features, data.labels
-        # adj, features, labels变成torch.FloatTensor这个类型
+
         adj, features, labels = preprocess(adj,features,labels,preprocess_adj=False)
         idx_train,idx_val,idx_test = data.idx_train,data.idx_val,data.idx_test
         # #set victim conv
         victim_model = set_surrogate_model(data)
-        # set attack conv
-        # 默认情况下，attack_features=False,attack_structure=True
+
         model = MinMax(model=victim_model, nnodes=adj.shape[0], loss_type='CE', device=device,
                        attack_features=False,attack_structure=True)
         model = model.to(device)
@@ -139,20 +118,14 @@ def generate_MinMax_adj(dataset,save_dir):
         n_perturbations = int(ptb_rate * (adj.sum() // 2))
         model.attack(features, adj, labels, idx_train, n_perturbations=n_perturbations)
         modified_adj = model.modified_adj.cpu().numpy()
-        # print(modified_adj)
         save_MinMax_dir = '{}/MinMax_{}_adj_{}'.format(adj_dir, dataset, round(ptb_rate, 3))
-        # save_MinMax_dir = '{}/MinMax_{}_features_{}'.format(adj_dir, dataset, round(ptb_rate, 3))
-        # print(save_MinMax_dir)
-        sp.save_npz(save_MinMax_dir, sp.csr_matrix(modified_adj))
-        # break
-        # sp.save_npz('{}/MinMax/{}/MinMax_{}_adj_{}'.format(save_dir, dataset, dataset,round((i + 1) * 0.05, 3)),
-        #             sp.csr_matrix(modified_adj))
 
+        sp.save_npz(save_MinMax_dir, sp.csr_matrix(modified_adj))
 
 
 
 def generate_Metattack_adj(dataset,save_dir):
-    # save_perturb_dir = './perturbation'
+
     adj_dir = os.path.join(save_dir, 'Metattack', dataset)
     judge_dir(adj_dir)
     data = Dataset_(dataset=dataset)
@@ -165,11 +138,10 @@ def generate_Metattack_adj(dataset,save_dir):
     idx_unlabeled = np.union1d(idx_val, idx_test)
 
     surrogate = set_surrogate_model(data)
-    # mettack攻击
-    # n_perturbations_list = []
+
     print(device)
     for i in range(5):
-        # torch.cuda.empty_cache()
+
         model = Metattack(model=surrogate, nnodes=adj.shape[0], feature_shape=features.shape, device=device,
                           attack_features=False, attack_structure=True)
         model = model.to(device)

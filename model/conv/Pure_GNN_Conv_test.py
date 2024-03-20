@@ -168,16 +168,9 @@ class Pure_GNN_Conv(MessagePassing):
         return result
 
     def update(self, inputs: Tensor) -> Tensor:
-        # upd = UPDATORS['const'](inputs)
-        # upd = inputs
+
         if self.updator_component=='initial_x':
             upd = UPDATORS[self.updator_component](inputs,self.adptive,self.x_i)
-        # elif self.updator_component=='dense_filter':
-        #     upd = UPDATORS[self.updator_component](inputs, self.W, self.x_i)
-        # elif self.updator_component=='sparse_filter':
-        #     upd = UPDATORS[self.updator_component](inputs, self.W, self.x_i,self.a)
-        # elif self.updator_component == 'const_1':
-        #     upd = UPDATORS['const_1'](inputs,self.x_i)
         elif self.updator_component=='feature_dense_filter':
             upd = UPDATORS[self.updator_component](inputs, self.x_i,self.df)
         elif self.updator_component=='feature_sparse_filter':

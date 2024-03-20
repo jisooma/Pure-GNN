@@ -1,9 +1,4 @@
-device: 'cuda:2'
-dataset_list: ['cora',]
-save_dir: 'results_1021'
-
-
-
+device: 'cuda:0'
 
 train_param:
   lr: 0.01
@@ -22,10 +17,9 @@ model:
 
   hidden_channels: 128
 
-#  subgraph: False
 
   original_x: True
-  adaptive: False #
+  adaptive: False
   n_node: 2006
 
   Pure_GNNConv:
@@ -36,18 +30,17 @@ model:
 #        name: gen_linear
 #        name: linear
         name: cos_sim
-#        name: cos_sim_1
         additive:
           requires_grad: True
 
       aggegator_component:
-        aggregators: ['sum']
+        aggregators: ['sum','max','min']
 #        # 'median''var','max' ,'min''std',
         # 多聚合器
 #        aggregators: ['sum','std']
 #        aggregators: ['sum','var']
-#        attention: 'dot'
-#        with_attention: True
+        attention: 'dot'
+        with_attention: True
       updator_component: const
 #      updator_component: const_1
 #      updator_component: initial_x
@@ -73,7 +66,6 @@ model:
         aggregators: ['sum']
         # 'median''var','max' ,'min''std',
 #        aggregators: None
-        # 最优的情况不加注意力机制，只用多聚合器
 #        aggregators: ['sum']
 #        aggregators: ['sum','std',]
 #        attention: 'dot'

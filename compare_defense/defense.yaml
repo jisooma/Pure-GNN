@@ -1,41 +1,30 @@
 device: 0
 
-save_clean_dir: './denfese/clean_acc/'
-save_attack_dir: './defense/attack_acc/'
-#
-#targeted_attack: ['RND',]
-#targeted_attack: ['Nettack',]
+save_clean_dir: './clean_acc/'
+save_attack_dir: './attack_acc/'
+
 targeted_attack: ['SGAttack','Nettack',]
-#global_attack: ['Dice','Random',]
-#targeted_attack: ['SGAttack',]
+
 global_attack: ['Dice','Random','Metattack',] #
-#global_attack: ['Metattack','Random',]
-#global_attack: ['Random',]
-#global_attack: ['Dice',]
+
 dataset_list: [
      'acm',
-     'uai',
-     'citeseer',
-     'cora_ml',
-     'pubmed',
-     'photo',
-
+#     'uai',
+#     'citeseer',
+#     'cora_ml',
+#     'pubmed',
+#     'photo',
 ]
 
 defense_dict: {
 #        'STABLE': 'STABLE',
 #        'Mid_GCN': 'Mid_GCN',
 #        'RGCN': 'R_GCN',
-##         'SimpGCN': 'Simp_GCN',
 #         'GNNGuard': 'GNN_Guard',
-#         'MedianGCN': 'Median_GCN',
-#        # 'ProGCN':'Pro_GCN',
-#         'ElasticGCN': 'Elastic_GCN',
-#
+##         'MedianGCN': 'Median_GCN',
          'GCN': 'GCN_',
          'GAT': 'GAT_',
-#         'GCNSVD': 'GCN_SVD',
-#         'GCNJaccard': 'GCN_Jaccard',
+         'GCNJaccard': 'GCN_Jaccard',
     }
 
 global_ptb_list: [0.05,0.10,0.15,0.20,0.25]

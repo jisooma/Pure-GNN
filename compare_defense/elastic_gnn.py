@@ -64,7 +64,6 @@ def get_inc(edge_index):
     col_index = edge_index.storage.col()
     # print(row_index)
     # print(col_index)
-    # 上三角矩阵
     mask = row_index >= col_index  # remove duplicate edge and self loopk)
     # print(len(mask))
     row_index = row_index[mask]

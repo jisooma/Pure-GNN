@@ -5,8 +5,6 @@
 
 import sys
 
-
-
 from deeprobust.graph.defense import GCN,SGC
 from deeprobust.graph.targeted_attack import Nettack,FGA,IGAttack,SGAttack,RND
 import random
@@ -48,7 +46,6 @@ def select_attack_nodes(save_dir=None,dataset=None,dataset_name=None):
             if degrees[i] > 40:
                 po_edges.append(i)
     else:
-        # 选择度大于10的节点进行攻击
         for i in range(idx_test.size):
             if degrees[i] > 10:
                 po_edges.append(i)
@@ -87,33 +84,24 @@ def set_attack_model(attack,target_node,surrogate,data,j,device):
     adj, features, labels = data.adj, data.features, data.labels
     idx_train, idx_val, idx_test = data.idx_train, data.idx_val, data.idx_test
     if attack == 'Nettack':
-        """
-        可以攻击图结构和节点特征
-        """
         model = Nettack(surrogate, nnodes=adj.shape[0], attack_structure=True, attack_features=False, device=device).to(
             device)
         model.attack(features, adj, labels, target_node, n_perturbations=j)
     elif attack == 'FGA':
-        """
-        只能攻击图结构
-        """
+
         model = FGA(surrogate, nnodes=adj.shape[0], device=device).to(device)
         # Attack
         model.attack(features, adj, labels, idx_train, target_node, n_perturbations=j)
     elif attack =='IGAttack':
-        """
-         可以攻击图结构和节点特征
-        """
         model = IGAttack(surrogate, nnodes=adj.shape[0], attack_structure=True, attack_features=False, device=device)
         model = model.to(device)
         model.attack(features, adj, labels, idx_train, target_node, j, steps=20)
+
     elif attack =='SGAttack':
-        """
-        可以攻击图结构和节点特征
-        """
         model = SGAttack(surrogate, attack_structure=True, attack_features=False, device=device)
         model = model.to(device)
         model.attack(features, adj, labels, target_node, j, direct=True)
+
     elif attack =='RND':
         model = RND()
         model.attack(adj,labels,idx_train,target_node,n_perturbations=j)
@@ -126,25 +114,12 @@ def set_attack_model(attack,target_node,surrogate,data,j,device):
 
 
 def generate_targeted_attack(save_dir,targeted_attack_list,dataset_list,device):
-    """
-    循环遍历所有的攻击，为所有数据集生成定向投毒攻击
-    :param save_dir:投毒数据集保存牡蛎
-    :param targeted_attack_list:定向攻击列表
-    :param dataset_list:数据集列表
-    :param device:设备
-    :return:无
-    """
+
     for attack in targeted_attack_list:
         print("--------attack-----:",attack)
         for name in dataset_list:
             print("--------dataset-----:", name)
-            """
-            data:干净的数据
-            po_edges:攻击的节点
-            data_adv:被攻击的数据
-            """
             data = Dataset_(dataset=name)
-            print(data)
             attack_data_save_dir = save_dir+'/'+attack
             if not os.path.exists(attack_data_save_dir):
                 os.makedirs(attack_data_save_dir)

@@ -17,7 +17,6 @@ def message_const(x_j: Tensor,):
 def message_gcn(x_j: Tensor,edge_weight: OptTensor,) -> Tensor:
     return x_j if edge_weight is None else edge_weight.view(-1, 1) * x_j
 
-# pyg实现
 def message_gat(
             x_j: Tensor,
             alpha_j: Tensor, alpha_i: OptTensor,
@@ -167,7 +166,6 @@ def message_linear(x_j: Tensor,
     return x_j * alpha
 
 def message_gen_linear(w,x_j: Tensor, x_norm_i: Tensor, x_norm_j: Tensor,index, ptr, size_i,*kwargs):
-    # 这里的w
     alpha =x_norm_i+x_norm_j
     alpha = F.tanh(input=alpha)
     alpha = w * alpha
@@ -245,10 +243,6 @@ def message_cure_gnn():
     pass
 
 
-"""
-
-"""
-
 MESSAGERS = {
 
     'message_const':message_const,
@@ -264,12 +258,6 @@ MESSAGERS = {
     'jac_sim': message_jaccard_similiarity,
     'cos_sim': message_cosine_similiarity,
     'cos_sim_1': message_cosine_similiarity_1,
-    # 'gat_1': message_gat_1,
-    # 'gat_2': message_gat_2,
-    # 'gat_3': message_gat_3,
-
-    # 'gen_linear_1': message_gen_linear_1,
-    # 'linear_1': message_linear_1,
 }
 
 

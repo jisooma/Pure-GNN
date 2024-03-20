@@ -13,7 +13,7 @@ from torch import optim
 from copy import deepcopy
 from deeprobust.graph import utils as Dprutils
 
-
+import numpy as np
 from utils.utils_2 import Dataset_
 from torch_geometric.nn import Linear
 from torch.nn import Parameter
@@ -317,7 +317,7 @@ def test_targeted_attack():
             time_list = []
             for ptb in targeted_ptb_list:
                 data = Dataset_(dataset=dataset, attack=attack,ptb=ptb)
-                epoch = 5
+                epoch = 1
                 sum = 0
                 all_time = 0
                 var = []
@@ -388,7 +388,7 @@ def test_global_attack():
                 else:
                     data = Dataset_(dataset=dataset, attack=attack, ptb=ptb, )
                 print(data)
-                epoch = 5
+                epoch = 1
                 sum = 0
                 all_time = 0
                 var = []
@@ -409,17 +409,11 @@ def test_global_attack():
             np.savetxt("{}/{}_{}_{}.txt".format(save_dir + '/acc', 'Pure_GNN', attack, dataset), np.array(acc_list))
             np.savetxt("{}/{}_{}_{}.txt".format(save_dir + '/var', 'Pure_GNN', attack, dataset, ), np.array(var_list))
             np.savetxt("{}/{}_{}_{}.txt".format(save_dir + '/time', 'Pure_GNN', attack, dataset, ), np.array(time_list))
-    # print(test_list[0])
-    # print(test_list[1])
-    # print(test_list[2])
-    # print(test_list[3])
-    # print(test_list[4])
-    # print(test_list[5])
 
 if __name__=='__main__':
     global_ptb_list =  [0.05, 0.10, 0.15, 0.20, 0.25]
     targeted_ptb_list = [1.0, 2.0, 3.0, 4.0, 5.0]
-    # test_Pure_GNN()
+    test_Pure_GNN()
     # test_global_attack()
-    test_targeted_attack()
+    # test_targeted_attack()
 

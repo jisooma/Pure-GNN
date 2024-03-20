@@ -1,9 +1,4 @@
 device: 'cuda:0'
-dataset_list: ['cora',]
-save_dir: 'results_1021'
-
-
-#feature_graph_dir: '/home/mzx/Code/Pure_GNN_1/feature_graph/'
 
 train_param:
   lr: 0.01
@@ -41,13 +36,10 @@ model:
           requires_grad: True
 
       aggegator_component:
-        aggregators: ['sum']
+        aggregators: ['sum','max','min']
 #        # 'median''var','max' ,'min''std',
-        # 多聚合器
-#        aggregators: ['sum','std']
-##        aggregators: ['sum','var']
-#        attention: 'dot'
-#        with_attention: True
+        attention: 'dot'
+        with_attention: True
 #      updator_component: const
       updator_component: const_1
 #      updator_component: initial_x

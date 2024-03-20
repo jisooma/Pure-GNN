@@ -1,8 +1,6 @@
 # _*_codeing=utf-8_*_
 # @Time:2022/4/10  12:05
 # @File:adj_changes.py
-import sys
-sys.path.append('/home/mzx/TASKS/Pure_GNN/')
 
 from deeprobust.graph.defense import GCN, GAT, RGCN, GCNSVD, GCNJaccard, SimPGCN, MedianGCN,ProGNN
 from deeprobust.graph.utils import preprocess
@@ -403,7 +401,7 @@ def test_global():
                     kwargs['ptb'] = ptb
                     print(kwargs)
 
-                    epoch = 5
+                    epoch = 1
                     sum = 0
                     all_time = 0
                     var = []
@@ -564,7 +562,7 @@ def test_target():
                     kwargs['ptb'] = ptb
                     print(kwargs)
 
-                    epoch = 5
+                    epoch = 1
                     sum = 0
                     all_time = 0
                     var = []
@@ -681,16 +679,8 @@ if __name__=="__main__":
     import random
     import warnings
     warnings.filterwarnings('ignore')
-    # test_()
-    # test_1()
-    # test_clean()
-    test_global()
-    test_target()
+    test_clean()
+    # test_global()
+    # test_target()
 
 
-"""
-data->denfese
-"""
-
-# data = load_Dataset('Cora')
-# GNN_Guard(data=data,device=device,k='1')

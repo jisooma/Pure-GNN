@@ -4,12 +4,10 @@
 # @File:attentions.py
 import torch
 
-
 import math
 import torch
 from torch import nn
 from torch_geometric.nn import Linear
-
 
 class Attention(nn.Module):
     def __init__(self,**kwargs):
@@ -29,14 +27,9 @@ class At(Attention):
     def forward(self,queries,keys,values):
 
         w = self.score_func(values)
-
         alpha = torch.softmax(w,dim=1)
-
         aggr_max = torch.argmax(alpha,dim=1)
-
-
         res = (alpha*values).sum(1)
-
         return res,aggr_max,alpha
 
 
@@ -130,12 +123,12 @@ class Attention_1(nn.Module):
             nn.Tanh(),
             nn.Linear(num_hiddens,1,bias=False)
         )
-    # def
+
     def forward(self,values):
         w = self.score_func(values)
 
         alpha = torch.softmax(w,dim=1)
-        res = (alpha*values).sum(1)  # 这里可以再变化
+        res = (alpha*values).sum(1)
 
         return res,alpha
 
@@ -148,8 +141,6 @@ ATTENTIONS={
 }
 
 import numpy as np
-
-# 注意力测试
 if __name__=='__main__':
     N = 1403
     M = 4
@@ -158,23 +149,17 @@ if __name__=='__main__':
     a = np.random.random((N,M,F))
 
     b = torch.from_numpy(a)
-    # c = torch.Tensor(b)
-    # print(b.shape)
+
     c = b.float()
-    # # print(c)
-    # attention = Attention(F,F,H)
-    # attention(c,c,c)
-    # __init__(self,key_size,query_size,num_hiddens,dropout=0,**kwargs)
+
     addAttention = AdditiveAttention(key_size=F,query_size=F,num_hiddens=H,dropout=0.2)
     addAttention(c,c,c)
 
-    # (self,key_size,query_size, num_hiddens,dropout=0.2,**kwargs)
     dotAttention = DotProductAttention(key_size=F,query_size=F,num_hiddens=H,dropout=0.2)
     dotAttention(c,c,c)
-    #
-    #(self,key_size,query_size, num_hiddens, dropout=0,**kwargs)
+
     biLiearityAttention=biLiearityAttention(key_size=F,query_size=F,num_hiddens=H,dropout=0.2)
     biLiearityAttention(c,c,c)
-    # (self,query_size,key_size,num_hiddens,dropout=0,**kwargs):
+
     catAttention = CatAttention(key_size=F, query_size=F,num_hiddens=H, dropout=0.2)
     catAttention(c,c,c)
