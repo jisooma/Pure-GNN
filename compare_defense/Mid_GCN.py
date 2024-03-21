@@ -205,7 +205,6 @@ class DeepGCN(nn.Module):
         return acc_test.item()
 
     def _set_parameters(self):
-        # TODO
         pass
 
     def predict(self, features=None, adj=None):

@@ -359,9 +359,7 @@ class Dataset_():
         return mask
 
     def toPygData(self,adj, features, labels, idx_train, idx_val, idx_test):
-        # Dpr2Pyg
         edge_index = torch.LongTensor(adj.nonzero())
-        # by default, the features in pyg data is dense
         if sp.issparse(features):
             x = torch.FloatTensor(features.todense()).float()
         else:
@@ -407,11 +405,6 @@ class Dataset_():
         return adj,features, labels, idx_train, idx_val, idx_test
 
     def cutDataSet(self,data, k):
-        """
-
-        :param data:
-        :return:
-        """
         print(k)
         num_node = len(data.labels)
         k = min(k, num_node)
@@ -471,7 +464,6 @@ def test_adj(adj_clean,adj_attack):
     adj_add = adj_attack-adj_clean
     adj_add_ = (adj_add==1).nonzero()
 
-    # delete
     adj_delete = adj_clean - adj_attack
     adj_delete_ = (adj_delete == 1).nonzero()
     node_list_1 = np.unique(adj_add_[0])
@@ -606,8 +598,7 @@ def count_degree():
 def load_degree():
     save_dir = './attack_nodes/'
     judge_dir(save_dir)
-    # 'acm',
-    for dataset in ['acm']:#  'cora_ml', 'citeseer'
+    for dataset in ['acm']:
         clean_data = Dataset_(dataset=dataset, largest_component=True)
         clean_adj = clean_data.adj
 
@@ -641,7 +632,6 @@ def load_degree():
 
 def degree_statics():
     for dataset in [ 'acm','citeseer','cora_ml','uai','pubmed']:
-        # pass
         clean_data = Dataset_(dataset=dataset,)
         clean_adj = clean_data.adj
         print(len(clean_adj.nonzero()[0]))

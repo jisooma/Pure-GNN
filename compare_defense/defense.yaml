@@ -5,15 +5,15 @@ save_attack_dir: './attack_acc/'
 
 targeted_attack: ['SGAttack','Nettack',]
 
-global_attack: ['Dice','Random','Metattack',] #
+global_attack: ['Dice','Random','Metattack',]
 
 dataset_list: [
      'acm',
-#     'uai',
-#     'citeseer',
-#     'cora_ml',
-#     'pubmed',
-#     'photo',
+     'uai',
+     'citeseer',
+     'cora_ml',
+     'pubmed',
+     'photo',
 ]
 
 defense_dict: {

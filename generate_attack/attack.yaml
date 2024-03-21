@@ -9,7 +9,4 @@ save_dir: '../attack_data/'
 
 dataset_list: [
                'acm',
-#               'citeseer',
-#               'cora_ml',
-#                'uai'
 ]

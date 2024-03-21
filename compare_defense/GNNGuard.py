@@ -71,7 +71,7 @@ class GNNGuard(nn.Module):
         t3 = time.time()
         if self.attention:
             adj_2 = self.att_coef(x, adj, i=1)
-            adj_memory = adj_2.to_dense()  # without memory
+            adj_memory = adj_2.to_dense()
             row, col = adj_memory.nonzero()[:,0], adj_memory.nonzero()[:,1]
             edge_index = torch.stack((row, col), dim=0)
             adj_values = adj_memory[row, col]
@@ -108,21 +108,17 @@ class GNNGuard(nn.Module):
         row, col = edge_index[0].cpu().data.numpy()[:], edge_index[1].cpu().data.numpy()[:]
 
         fea_copy = fea.cpu().data.numpy()
-        sim_matrix = cosine_similarity(X=fea_copy, Y=fea_copy)  # try cosine similarity
+        sim_matrix = cosine_similarity(X=fea_copy, Y=fea_copy)
         sim = sim_matrix[row, col]
         sim[sim<0.1] = 0
 
-
-        """build a attention matrix"""
         att_dense = lil_matrix((n_node, n_node), dtype=np.float32)
         att_dense[row, col] = sim
         if att_dense[0, 0] == 1:
             att_dense = att_dense - sp.diags(att_dense.diagonal(), offsets=0, format="lil")
-        # normalization, make the sum of each row is 1
+
         att_dense_norm = normalize(att_dense, axis=1, norm='l1')
 
-
-        """add learnable dropout, make character vector"""
         if self.drop:
             character = np.vstack((att_dense_norm[row, col].A1,
                                      att_dense_norm[col, row].A1))
@@ -185,7 +181,6 @@ class GNNGuard(nn.Module):
             adj = adj.to(self.device)
             labels = labels.to(self.device)
 
-        """The normalization gonna be done in the GCNConv"""
         self.adj_norm = adj
         self.features = features
         self.labels = labels
@@ -306,7 +301,7 @@ class GNNGuard(nn.Module):
         pass
 
     def predict(self, features=None, adj=None):
-        '''By default, inputs are unnormalized data'''
+
         self.eval()
         if features is None and adj is None:
             return self.forward(self.features, self.adj_norm)
@@ -328,7 +323,6 @@ def GNN_Guard(data, device, arg):
 
     if torch.is_tensor(adj):
         adj = sp.csr_matrix(adj.cpu().numpy())
-    ''' testing conv '''
 
     model = GNNGuard(nfeat=features.shape[1], nhid=128, nclass=labels.max().item() + 1,
                      dropout=0.0, device=device,lr=0.01,weight_decay=5e-4)

@@ -10,7 +10,6 @@ from utils.utils_2 import Dataset_
 import numpy as np
 
 def set_surrogate_model(data):
-    # set surrogate conv
     adj, features, labels = data.adj, data.features, data.labels
     idx_train, idx_val, idx_test = data.idx_train, data.idx_val, data.idx_test
     surrogate = GCN(nfeat=features.shape[1], nclass=labels.max().item() + 1,
@@ -91,7 +90,6 @@ def generate_MinMax_adj(dataset,save_dir):
 
         adj, features, labels = preprocess(adj,features,labels,preprocess_adj=False)
         idx_train,idx_val,idx_test = data.idx_train,data.idx_val,data.idx_test
-        # #set victim conv
         victim_model = set_surrogate_model(data)
 
         model = MinMax(model=victim_model, nnodes=adj.shape[0], loss_type='CE', device=device,
