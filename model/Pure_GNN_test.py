@@ -317,7 +317,7 @@ def test_targeted_attack():
             time_list = []
             for ptb in targeted_ptb_list:
                 data = Dataset_(dataset=dataset, attack=attack,ptb=ptb)
-                epoch = 1
+                epoch = 5
                 sum = 0
                 all_time = 0
                 var = []
@@ -388,7 +388,7 @@ def test_global_attack():
                 else:
                     data = Dataset_(dataset=dataset, attack=attack, ptb=ptb, )
                 print(data)
-                epoch = 1
+                epoch = 5
                 sum = 0
                 all_time = 0
                 var = []
@@ -413,7 +413,7 @@ def test_global_attack():
 if __name__=='__main__':
     global_ptb_list =  [0.05, 0.10, 0.15, 0.20, 0.25]
     targeted_ptb_list = [1.0, 2.0, 3.0, 4.0, 5.0]
-    test_Pure_GNN()
-    # test_global_attack()
-    # test_targeted_attack()
+    # test_Pure_GNN()
+    test_global_attack()
+    test_targeted_attack()
 

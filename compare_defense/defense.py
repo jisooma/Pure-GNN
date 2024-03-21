@@ -401,7 +401,7 @@ def test_global():
                     kwargs['ptb'] = ptb
                     print(kwargs)
 
-                    epoch = 1
+                    epoch = 5
                     sum = 0
                     all_time = 0
                     var = []
@@ -562,7 +562,7 @@ def test_target():
                     kwargs['ptb'] = ptb
                     print(kwargs)
 
-                    epoch = 1
+                    epoch = 5
                     sum = 0
                     all_time = 0
                     var = []
@@ -680,7 +680,7 @@ if __name__=="__main__":
     import warnings
     warnings.filterwarnings('ignore')
     test_clean()
-    # test_global()
-    # test_target()
+    test_global()
+    test_target()
 
 
