@@ -1,4 +1,4 @@
-device: 'cuda:0'
+device: 'cuda:2'
 
 train_param:
   lr: 0.01
@@ -19,20 +19,18 @@ model:
 
 
   original_x: True
-  adaptive: False
-  n_node: 2006
+  adaptive: True
+  n_node: 3059
 
   Pure_GNNConv:
     layer_1:
       message_component:
-
         name: cos_sim
         additive:
           requires_grad: True
 
       aggegator_component:
         aggregators: ['sum','max','min']
-
         attention: 'dot'
         with_attention: True
       updator_component: const
@@ -40,12 +38,11 @@ model:
 
     layer_2:
       message_component:
-
         name: cos_sim
+
         additive:
           requires_grad: True
 
       aggegator_component:
         aggregators: ['sum']
-
       updator_component: const

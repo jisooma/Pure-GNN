@@ -25,57 +25,24 @@ model:
   Pure_GNNConv:
     layer_1:
       message_component:
-#        name: gcn
-#        name: gat
-#        name: gen_linear
-#        name: linear
         name: cos_sim
         additive:
           requires_grad: True
 
       aggegator_component:
         aggregators: ['sum','max','min']
-#        # 'median''var','max' ,'min''std',
-        # 多聚合器
-#        aggregators: ['sum','std']
-#        aggregators: ['sum','var']
+
         attention: 'dot'
         with_attention: True
       updator_component: const
-#      updator_component: const_1
-#      updator_component: initial_x
-#      updator_component: linear_x
-#      updator_component: concat_x
-#      updator_component: interpolation_x
-#      updator_component: sparse_filter
-#      updator_component: dense_filter
-#      updator_component: feature_sparse_filter
+
 
     layer_2:
       message_component:
-#        name: gcn
-#         name: gat
-#        name: gen_linear
-#        name: linear
         name: cos_sim
-#        name: cos_sim_1
         additive:
           requires_grad: True
 
       aggegator_component:
         aggregators: ['sum']
-        # 'median''var','max' ,'min''std',
-#        aggregators: None
-#        aggregators: ['sum']
-#        aggregators: ['sum','std',]
-#        attention: 'dot'
-#        with_attention: True
       updator_component: const
-#      updator_component: const_1
-#      updator_component: initial_x
-#      updator_component: linear_x
-#      updator_component: concat_x
-#      updator_component: interpolation_x
-#      updator_component: sparse_filter
-#      updator_component: dense_filter
-#      updator_component: feature_sparse_filter
