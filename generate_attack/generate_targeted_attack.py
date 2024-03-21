@@ -1,8 +1,3 @@
-# _*_codeing=utf-8_*_
-# @Time:2022/4/1  18:16
-
-# @File:generate_targeted_attack.py
-
 import sys
 
 from deeprobust.graph.defense import GCN,SGC
@@ -63,17 +58,15 @@ def set_surrogate_model(data,attack,device):
     adj, features, labels = data.adj, data.features, data.labels
     idx_train, idx_val, idx_test = data.idx_train, data.idx_val, data.idx_test
     if attack=='SGAttack':
-        # Setup Surrogate conv
         surrogate = SGC(nfeat=features.shape[1],
                         nclass=labels.max().item() + 1, K=2,
                         lr=0.01, device=device).to(device)
 
         pyg_data = Dpr2Pyg(data).pyg_data
-        surrogate.fit(pyg_data, verbose=False)  # train with earlystopping
+        surrogate.fit(pyg_data, verbose=False)
         surrogate.test()
 
     else:
-        # set surrogate conv
         surrogate = GCN(nfeat=features.shape[1], nclass=labels.max().item() + 1,
                         nhid=16, dropout=0, with_relu=False, with_bias=False, device=device).to(device)
         surrogate.fit(features, adj, labels, idx_train, idx_val, patience=30)

@@ -1,7 +1,3 @@
-# _*_codeing=utf-8_*_
-# @Time:2022/3/22  11:43
-
-# @File:aggregators.py
 import torch
 from torch import Tensor
 from torch_scatter import scatter

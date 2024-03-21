@@ -1,7 +1,3 @@
-# _*_codeing=utf-8_*_
-# @Time:2022/5/16  20:06
-
-# @File:attentions.py
 import torch
 
 import math

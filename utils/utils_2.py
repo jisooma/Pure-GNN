@@ -1,7 +1,3 @@
-# _*_codeing=utf-8_*_
-# @Time:2022/7/9  10:10
-# @File:utils.py
-
 import sys
 
 import numpy as np
@@ -508,13 +504,7 @@ def test_adj(adj_clean,adj_attack):
     # delete
     adj_delete = adj_clean - adj_attack
     adj_delete_ = (adj_delete == 1).nonzero()
-    # print(len(adj_delete_[0]))
-
-    # # no change
-    # adj_ = adj_attack+adj_clean
-    # adj_unchanged_ = (adj_==2).nonzero()
     node_list_1 = np.unique(adj_add_[0])
-    # print(node_list_1)
     node_list_2 = np.unique(adj_add_[1])
     node_list_3 = np.unique(adj_delete_[0])
     node_list_4 = np.unique(adj_delete_[1])
@@ -529,7 +519,7 @@ def test_adj(adj_clean,adj_attack):
 def all_attack_nodes():
     save_dir = './attack_nodes/'
     judge_dir(save_dir)
-    for dataset in ['hoto']:#'uai','acm','cora_ml','citeseer''photo',
+    for dataset in ['photo']:#'uai','acm','cora_ml','citeseer''photo',
         clean_data = Dataset_(dataset=dataset,largest_component=False)
         print(clean_data)
         clean_adj  = clean_data.adj
@@ -542,11 +532,11 @@ def all_attack_nodes():
                 dataset='photo'
             np.savetxt('{}/{}_{}_0.25.txt'.format(save_dir,attack,dataset),np.array(attacked_node))
 
-        # for attack in ['SGAttack','Nettack']:
-        #     perturbed_data = Dataset_(dataset=dataset, attack=attack, ptb='5.0', largest_component=True)
-        #     perturbed_adj = perturbed_data.adj
-        #     adj_delete_,adj_add_,attacked_node = test_adj(adj_clean=clean_adj,adj_attack=perturbed_adj)
-        #     np.savetxt('{}/{}_{}_5.0.txt'.format(save_dir, attack, dataset), np.array(attacked_node))
+        for attack in ['SGAttack','Nettack']:
+            perturbed_data = Dataset_(dataset=dataset, attack=attack, ptb='5.0', largest_component=True)
+            perturbed_adj = perturbed_data.adj
+            adj_delete_,adj_add_,attacked_node = test_adj(adj_clean=clean_adj,adj_attack=perturbed_adj)
+            np.savetxt('{}/{}_{}_5.0.txt'.format(save_dir, attack, dataset), np.array(attacked_node))
 
 import matplotlib.pyplot as plt
 def degree_distribution(degree_sequence,attack=None,dataset=None):
@@ -554,8 +544,6 @@ def degree_distribution(degree_sequence,attack=None,dataset=None):
     now = datetime.datetime.now()
     path_1 ='./deg_distribution_2023_5_23/'
     judge_dir(path_1)
-
-    # degree_sequence = sorted((d for n,d in g.degree()),reverse=True)
 
     import numpy as np
     fig,ax = plt.subplots()
@@ -660,9 +648,6 @@ def load_degree():
             with open('{}/{}_{}_attacked_nodes_degree.json'.format(save_dir, dataset,attack), 'r') as fp:
                 data_str = fp.read()
                 degree = json.loads(data_str)
-                # sub_
-                # print()
-
                 sub_degree = degree['sub_degree']
                 clean_degree = degree['clean_degree']
                 attack_degree = degree['attack_degree']

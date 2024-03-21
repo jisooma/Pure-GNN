@@ -17,14 +17,14 @@ dataset_list: [
 ]
 
 defense_dict: {
-#        'STABLE': 'STABLE',
-#        'Mid_GCN': 'Mid_GCN',
-#        'RGCN': 'R_GCN',
-#         'GNNGuard': 'GNN_Guard',
-##         'MedianGCN': 'Median_GCN',
-         'GCN': 'GCN_',
-         'GAT': 'GAT_',
-         'GCNJaccard': 'GCN_Jaccard',
+        'GCN': 'GCN_',
+        'GAT': 'GAT_',
+        'GCNJaccard': 'GCN_Jaccard',
+        'STABLE': 'STABLE',
+        'Mid_GCN': 'Mid_GCN',
+        'RGCN': 'R_GCN',
+         'GNNGuard': 'GNN_Guard',
+         'MedianGCN': 'Median_GCN',
     }
 
 global_ptb_list: [0.05,0.10,0.15,0.20,0.25]

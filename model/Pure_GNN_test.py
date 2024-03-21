@@ -1,11 +1,4 @@
-# _*_codeing=utf-8_*_
-# @Time:2022/10/3  18:00
-
-# @File:GCN_1.py
-
 import sys
-
-
 import torch
 import torch.nn.functional as F
 
@@ -70,7 +63,6 @@ class Pure_GNN(torch.nn.Module):
 
     def forward(self, x, edge_index,):
 
-        # root_x = x
         if self.original_x:
             root_x_1 = self.lin_root_x_1(x)
             root_x_2 = self.lin_root_x_2(x)
@@ -82,7 +74,6 @@ class Pure_GNN(torch.nn.Module):
         if self.original_x:
             if self.adaptive:
                 attr = F.sigmoid(self.beta_1)
-                # attr = self.beta_1
                 x_g = attr * x_g + root_x_1 * (1 - attr)
             else:
                 x_g = x_g + root_x_1
@@ -94,7 +85,6 @@ class Pure_GNN(torch.nn.Module):
         if self.original_x:
             if self.adaptive:
                 attr = F.sigmoid(self.beta_2)
-                # attr = self.beta_2
                 self.output_final = attr * x + root_x_2 * (1 - attr)
             else:
                 self.output_final = x + root_x_2
@@ -114,13 +104,11 @@ class Pure_GNN(torch.nn.Module):
         self.device=device
         self.data = pyg_data
 
-        # By default, it is trained with early stopping on validation
         self.train_with_early_stopping(train_iters, patience, verbose,self.weight_decay,self.lr)
 
 
     def train_with_early_stopping(self, train_iters, patience, verbose,weight_decay,lr):
-        """early stopping based on the validation loss
-        """
+
         if verbose:
             print('=== training  ===')
         optimizer = optim.Adam(self.parameters(), lr=lr, weight_decay=weight_decay)
@@ -214,16 +202,7 @@ def test_1(data,device, model_param, train_param,x_pre=None,att=True):
     end = time.perf_counter()
     acc = model.test()
 
-    # output = model.o.cpu().numpy()
-    # attention = model.Pure_GNN_convs[0].alpha.cpu().numpy()
-    # last_layer_hidden_features = model.output_final.cpu().detach().numpy()
-    # print(last_layer_hidden_features.shape)
-    # first_layer_hidden_features = model.first_layer.cpu().detach().numpy()
-    # print('fi')
-    # print(first_layer_hidden_features.shape)
     return acc, end - start
-    # first_layer_hidden_features
-    # return acc,end-start,output
 
 from utils.set_args import *
 from deeprobust.graph.data import Dpr2Pyg
@@ -253,7 +232,7 @@ def test_Pure_GNN():
         param_dict = load_param('../config_test/clean/' + dataset + '.yaml')
         device = param_dict['device']
         print(device)
-        # global device
+
         model_param = param_dict.get('model')
         train_param = param_dict.get('train_param')
         data = Dataset_(dataset=dataset, )
@@ -262,10 +241,9 @@ def test_Pure_GNN():
         sum = 0
         all_time = 0
         var = []
-        # output_sum = 0
+
         for i in range(epoch):
-            # 提前计算并保存好
-            # acc, times,last = test_1(data, device, model_param, train_param, )
+
             acc, times = test_1(data, device, model_param, train_param, )
             all_time = all_time + times
             sum = sum + acc
@@ -304,8 +282,6 @@ def test_targeted_attack():
     test_list = []
     for dataset in dataset_list:
         for attack in targeted_attack:
-            # print(attack)
-
             param_dict = load_param('../config_test/' + attack + '/' + dataset + '.yaml')
             device = param_dict['device']
 
@@ -340,12 +316,6 @@ def test_targeted_attack():
             np.savetxt("{}/{}_{}_{}.txt".format(save_dir + '/acc','Pure_GNN',attack,dataset), np.array(acc_list))
             np.savetxt("{}/{}_{}_{}.txt".format(save_dir + '/var', 'Pure_GNN', attack,dataset,), np.array(var_list))
             np.savetxt("{}/{}_{}_{}.txt".format(save_dir + '/time', 'Pure_GNN',attack, dataset,), np.array(time_list))
-    # print(test_list[0])
-    # print(test_list[1])
-    # print(test_list[2])
-    # print(test_list[3])
-    # print(test_list[4])
-    # print(test_list[5])
 
 def test_global_attack():
     import warnings
@@ -371,8 +341,6 @@ def test_global_attack():
             print(dataset)
             print(attack)
             param_dict = load_param('../config_test/' +attack + '/' + dataset + '.yaml')
-            # print(param_dict)
-            # print('../config_1/' + attack + '/' + dataset + '.yaml')
             device = param_dict['device']
 
             model_param = param_dict.get('model')
@@ -413,7 +381,7 @@ def test_global_attack():
 if __name__=='__main__':
     global_ptb_list =  [0.05, 0.10, 0.15, 0.20, 0.25]
     targeted_ptb_list = [1.0, 2.0, 3.0, 4.0, 5.0]
-    # test_Pure_GNN()
+    test_Pure_GNN()
     test_global_attack()
     test_targeted_attack()
 

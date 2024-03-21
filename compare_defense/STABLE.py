@@ -1,10 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-# @Time    : 2023/4/16 10:40
-
-# @File    : STABLE.py
-# @Project : Pure_GNN
-# @Software: PyCharm
 import torch.nn as nn
 import random
 import copy
@@ -68,7 +61,7 @@ def sparse_dense_mul(s, d):
         return s * d
     i = s._indices()
     v = s._values()
-    dv = d[i[0, :], i[1, :]]  # get values from relevant entries of dense matrix
+    dv = d[i[0, :], i[1, :]]
     return torch.sparse.FloatTensor(i, v * dv, s.size())
 
 
@@ -82,15 +75,11 @@ def evaluate(model, adj, features, labels, mask):
         correct = torch.sum(indices == test_labels)
         return correct.item() * 1.0 / test_labels.shape[0]
 
-from torch_geometric.utils import degree
-# from trch
 def get_reliable_neighbors(adj, features, k, degree_threshold,device):
-    # adj = sparse_mx_to_sparse_tensor(adj)
-    # adj = to_tensor(adj,device=device)
+
     adj = adj.to_dense()
     print(type(adj))
     degree = adj.sum(dim=1)
-    # degree =
     degree_mask = degree > degree_threshold
     assert degree_mask.sum().item() >= k
     sim = cosine_similarity(features)
@@ -117,15 +106,13 @@ def adj_new_norm(adj, alpha,device):
 
 
 def preprocess_adj(features, adj, logger, metric='similarity', threshold=0.03, jaccard=True):
-    """Drop dissimilar edges.(Faster version using numba)
-    """
     if not sp.issparse(adj):
         adj = sp.csr_matrix(adj)
 
     adj_triu = sp.triu(adj, format='csr')
 
     if sp.issparse(features):
-        features = features.todense().A  # make it easier for njit processing
+        features = features.todense().A
 
     if metric == 'distance':
         removed_cnt = dropedge_dis(adj_triu.data, adj_triu.indptr, adj_triu.indices, features, threshold=threshold)
@@ -145,13 +132,13 @@ def dropedge_dis(A, iA, jA, features, threshold):
     removed_cnt = 0
     for row in range(len(iA)-1):
         for i in range(iA[row], iA[row+1]):
-            # print(row, jA[i], A[i])
+
             n1 = row
             n2 = jA[i]
             C = np.linalg.norm(features[n1] - features[n2])
             if C > threshold:
                 A[i] = 0
-                # A[n2, n1] = 0
+
                 removed_cnt += 1
 
     return removed_cnt
@@ -161,7 +148,7 @@ def dropedge_both(A, iA, jA, features, threshold1=2.5, threshold2=0.01):
     removed_cnt = 0
     for row in range(len(iA)-1):
         for i in range(iA[row], iA[row+1]):
-            # print(row, jA[i], A[i])
+
             n1 = row
             n2 = jA[i]
             C1 = np.linalg.norm(features[n1] - features[n2])
@@ -171,7 +158,7 @@ def dropedge_both(A, iA, jA, features, threshold1=2.5, threshold2=0.01):
             C2 = inner_product / (np.sqrt(np.square(a).sum() + np.square(b).sum())+ 1e-6)
             if C1 > threshold1 or threshold2 < 0:
                 A[i] = 0
-                # A[n2, n1] = 0
+
                 removed_cnt += 1
 
     return removed_cnt
@@ -181,7 +168,6 @@ def dropedge_jaccard(A, iA, jA, features, threshold):
     removed_cnt = 0
     for row in range(len(iA)-1):
         for i in range(iA[row], iA[row+1]):
-            # print(row, jA[i], A[i])
             n1 = row
             n2 = jA[i]
             a, b = features[n1], features[n2]
@@ -190,7 +176,7 @@ def dropedge_jaccard(A, iA, jA, features, threshold):
 
             if J < threshold:
                 A[i] = 0
-                # A[n2, n1] = 0
+
                 removed_cnt += 1
     return removed_cnt
 
@@ -199,7 +185,7 @@ def dropedge_cosine(A, iA, jA, features, threshold):
     removed_cnt = 0
     for row in range(len(iA)-1):
         for i in range(iA[row], iA[row+1]):
-            # print(row, jA[i], A[i])
+
             n1 = row
             n2 = jA[i]
             a, b = features[n1], features[n2]
@@ -207,17 +193,12 @@ def dropedge_cosine(A, iA, jA, features, threshold):
             C = inner_product / (np.sqrt(np.square(a).sum()) * np.sqrt(np.square(b).sum()) + 1e-8)
             if C <= threshold:
                 A[i] = 0
-                # A[n2, n1] = 0
                 removed_cnt += 1
     return removed_cnt
 
 
 def sparse_mx_to_sparse_tensor(sparse_mx):
-    """sparse matrix to sparse tensor matrix(torch)
-    Args:
-        sparse_mx : scipy.sparse.csr_matrix
-            sparse matrix
-    """
+
     sparse_mx_coo = sparse_mx.tocoo().astype(np.float32)
     sparse_row = torch.LongTensor(sparse_mx_coo.row).unsqueeze(1)
     sparse_col = torch.LongTensor(sparse_mx_coo.col).unsqueeze(1)
@@ -227,18 +208,7 @@ def sparse_mx_to_sparse_tensor(sparse_mx):
 
 
 def to_tensor(adj, features, labels=None, device='cpu'):
-    """Convert adj, features, labels from array or sparse matrix to
-    torch Tensor on target device.
-    Args:
-        adj : scipy.sparse.csr_matrix
-            the adjacency matrix.
-        features : scipy.sparse.csr_matrix
-            node features
-        labels : numpy.array
-            node labels
-        device : str
-            'cpu' or 'cuda'
-    """
+
     if sp.issparse(adj):
         adj = sparse_mx_to_sparse_tensor(adj)
     else:
@@ -256,28 +226,14 @@ def to_tensor(adj, features, labels=None, device='cpu'):
 
 
 def idx_to_mask(idx, nodes_num):
-    """Convert a indices array to a tensor mask matrix
-    Args:
-        idx : numpy.array
-            indices of nodes set
-        nodes_num: int
-            number of nodes
-    """
+
     mask = torch.zeros(nodes_num)
     mask[idx] = 1
     return mask.bool()
 
 
 def is_sparse_tensor(tensor):
-    """Check if a tensor is sparse tensor.
-    Args:
-        tensor : torch.Tensor
-                 given tensor
-    Returns:
-        bool
-        whether a tensor is sparse tensor
-    """
-    # if hasattr(tensor, 'nnz'):
+
     if tensor.layout == torch.sparse_coo:
         return True
     else:
@@ -285,8 +241,7 @@ def is_sparse_tensor(tensor):
 
 
 def get_contrastive_emb(logger, adj, features, adj_delete, lr, weight_decay, nb_epochs, beta, recover_percent=0.2,device='cuda:0'):
-    # print(adj.shape)# (2006, 2006)
-    # print(features.shape)# torch.Size([1, 2006, 1870])
+
     ft_size = features.shape[2]
     nb_nodes = features.shape[1]
     aug_features1 = features
@@ -314,21 +269,6 @@ def get_contrastive_emb(logger, adj, features, adj_delete, lr, weight_decay, nb_
         sp_aug_adj1 = sp_aug_adj1.to(device)
         sp_aug_adj2 = sp_aug_adj2.to(device)
 
-        # print(type(features))
-        # print(type(aug_features1))
-        # print(type(aug_features2))
-        # print(type(sp_adj))
-        # print(type(sp_aug_adj1))
-        # print(type(sp_aug_adj2))
-        """
-        <class 'torch.Tensor'>
-        <class 'torch.Tensor'>
-        <class 'torch.Tensor'>
-        <class 'torch.Tensor'>
-        <class 'torch.Tensor'>
-        <class 'torch.Tensor'>
-        """
-
 
     b_xent = nn.BCEWithLogitsLoss()
     cnt_wait = 0
@@ -340,9 +280,9 @@ def get_contrastive_emb(logger, adj, features, adj_delete, lr, weight_decay, nb_
         optimiser.zero_grad()
 
         idx = np.random.permutation(nb_nodes)
-        # print(idx)
+
         shuf_fts = features[:, idx, :]
-        # print(shuf_fts.shape)
+
         lbl_1 = torch.ones(1, nb_nodes)
         lbl_2 = torch.zeros(1, nb_nodes)
         lbl = torch.cat((lbl_1, lbl_2), 1)
@@ -376,49 +316,27 @@ def get_contrastive_emb(logger, adj, features, adj_delete, lr, weight_decay, nb_
 
     return model.embed(features, sp_adj, True, None)
 
-# Dataset_PureGNN:acm(adj_shape=(2006, 2006), feature_shape=(2006, 1870),labels=(2006,),idx_train=(200,),idx_val=(201,),idx_test=(1605,))
+
 def aug_random_edge(input_adj, adj_delete, recover_percent=0.2):
-    # print(adj_delete)
+
     percent = recover_percent
     adj_delete = sp.tril(adj_delete)
     row_idx, col_idx = adj_delete.nonzero()
-    # print(row_idx)# [   0    1    2 ... 2482 2483 2484]
-    edge_num = int(len(row_idx))# 删掉的边数量
-    # print('edge_num:',edge_num)# edge_num: 2008
+
+    edge_num = int(len(row_idx))
+
     add_edge_num = int(edge_num * percent)
     print("the number of recovering edges: {:04d}" .format(add_edge_num))
-    # print(input_adj.shape)
     aug_adj = copy.deepcopy(input_adj.todense().tolist())
-    # print('aug_adj:',aug_adj[0:10])
-    # print(len(aug_adj))# 2006
-    # print(len(aug_adj[0]))# 2006
-    """
-    aug_adj[0][:]: 节点0对应的邻接矩阵的那一行
-    """
+
     edge_list = [(i, j) for i, j in zip(row_idx, col_idx)]
-    # print('edge_list:',edge_list[0:10])
-    """
-    the number of recovering edges: 0401
-    edge_list: [(0, 0), (1, 1), (2, 2), (3, 3), (4, 4), (5, 5), (6, 6), (7, 7), (8, 8), (9, 9)]
-    the number of recovering edges: 0401
-    edge_list: [(0, 0), (1, 1), (2, 2), (3, 3), (4, 4), (5, 5), (6, 6), (7, 7), (8, 8), (9, 9)]
-    """
+
     edge_idx = [i for i in range(edge_num)]
-    # 从删边索引中，随机抽取add_egde_num个索引，进行恢复
+
     add_idx = random.sample(edge_idx, add_edge_num)
-    # print(len(add_idx))#
+
     for i in add_idx:
-        # 恢复哪条边，i是恢复边索引，
-        # print(edge_list[i][0])
-        # print(edge_list[i][1])
-        # """
-        # 1302
-        # 1302
-        # 841
-        # 841
-        # 1794
-        # 1794
-        # """
+
         aug_adj[edge_list[i][0]][edge_list[i][1]] = 1
         aug_adj[edge_list[i][1]][edge_list[i][0]] = 1
 
@@ -429,7 +347,7 @@ def aug_random_edge(input_adj, adj_delete, recover_percent=0.2):
 
 
 def normalize_adj(adj):
-    """Symmetrically normalize adjacency matrix."""
+
     adj = sp.coo_matrix(adj)
     rowsum = np.array(adj.sum(1))
     d_inv_sqrt = np.power(rowsum, -0.5).flatten()
@@ -439,7 +357,7 @@ def normalize_adj(adj):
 
 
 def normalize_adj2(adj, alpha=-0.5):
-    """Symmetrically normalize adjacency matrix."""
+
     adj = sparse_mx_to_torch_sparse_tensor(adj)
     adj = torch.add(torch.eye(adj.shape[0]), adj)
     degree = adj.sum(dim=1)
@@ -460,21 +378,14 @@ class DGI(nn.Module):
         self.read = AvgReadout()
         self.sigm = nn.Sigmoid()
         self.disc = Discriminator(n_h)
-    # (features, shuf_fts, aug_features1, aug_features2,
-    #  sp_adj if sparse else adj,
-    #  sp_aug_adj1 if sparse else aug_adj1,
-    #  sp_aug_adj2 if sparse else aug_adj2,
-    #  sparse, None, None, None, aug_type=aug_type
+
     def forward(self, seq1, seq2, seq3, seq4, adj, aug_adj1, aug_adj2, sparse, msk, samp_bias1, samp_bias2, aug_type):
-        """
-        features, shuf_fts, aug_features1, aug_features2,sp_adj, sp_aug_adj1, sp_aug_adj2,True, None, None, None, aug_type='edge'
-        """
+
         h_0 = self.gcn(seq1, adj, sparse)
         if aug_type == 'edge':
             h_1 = self.gcn(seq1, aug_adj1, sparse)
-            # print('h_1.shape:',h_1.shape)# h_1.shape: torch.Size([1, 2485, 512])
             h_3 = self.gcn(seq1, aug_adj2, sparse)
-            # print('h_3.shape:',h_3.shape)# h_3.shape: torch.Size([1, 2485, 512])
+
         elif aug_type == 'mask':
             h_1 = self.gcn(seq3, adj, sparse)
             h_3 = self.gcn(seq4, adj, sparse)
@@ -484,24 +395,22 @@ class DGI(nn.Module):
         else:
             assert False
         c_1 = self.read(h_1, msk)
-        # print('c_1.shape:',c_1.shape)# c_1.shape: torch.Size([1, 512])
+
         c_1 = self.sigm(c_1)
 
         c_3 = self.read(h_3, msk)
-        # print('c_3.shape:',c_3.shape)# c_3.shape: torch.Size([1, 512])
+
         c_3 = self.sigm(c_3)
 
         h_2 = self.gcn(seq2, adj, sparse)
-        # print('h_2.shape:',h_2.shape)# h_2.shape: torch.Size([1, 2485, 512])
 
         ret1 = self.disc(c_1, h_0, h_2, samp_bias1, samp_bias2)
-        # print('ret1_shape:',ret1.shape)
+
         ret2 = self.disc(c_3, h_0, h_2, samp_bias1, samp_bias2)
-        # print('ret2_shape:', ret2.shape)
+
         ret = ret1 + ret2
         return ret
 
-    # Detach the return variables
     def embed(self, seq, adj, sparse, msk):
         h_1 = self.gcn(seq, adj, sparse)
         c = self.read(h_1, msk)
@@ -530,16 +439,7 @@ class GCN_DGI(nn.Module):
             if m.bias is not None:
                 m.bias.data.fill_(0.0)
 
-    # Shape of seq: (batch, nodes, features)
     def forward(self, seq, adj, sparse=False):
-        # print('GCN_DGI')
-        # print(seq.shape)
-        # print(adj.shape)
-        # print*
-        """
-        torch.Size([1, 2485, 1433])
-        torch.Size([2485, 2485])
-        """
         seq_fts = self.fc(seq)
         if sparse:
             out = torch.unsqueeze(torch.spmm(adj, torch.squeeze(seq_fts, 0)), 0)
@@ -556,8 +456,6 @@ class AvgReadout(nn.Module):
         super(AvgReadout, self).__init__()
 
     def forward(self, seq, msk):
-        # print('AvgReadout:')
-        # print(seq.shape)# torch.Size([1, 2485, 512])
         if msk is None:
             return torch.mean(seq, 1)
         else:
@@ -569,10 +467,6 @@ class Discriminator(nn.Module):
     def __init__(self, n_h):
         super(Discriminator, self).__init__()
         self.f_k = nn.Bilinear(n_h, n_h, 1)
-        # [512,512,1]
-        # [1,2845,512]@[512,512,1]=>[1,2485,512]
-        # [1,2485,512]*[1,1,512] ->[1,2485,512]*[512,1]->[1,2485,1]
-
         for m in self.modules():
             self.weights_init(m)
 
@@ -583,36 +477,21 @@ class Discriminator(nn.Module):
                 m.bias.data.fill_(0.0)
 
     def forward(self, c, h_pl, h_mi, s_bias1=None, s_bias2=None):
-        c_x = torch.unsqueeze(c, 1)# c_x.shpae: torch.Size([1, 1, 512])
-        # print('c_x.shpae:',c_x.shape)
-        # print(type(c_x))
+        c_x = torch.unsqueeze(c, 1)
+
         c_x = c_x.expand_as(h_pl)
-        # print(type(h_pl))
-        # print(type(c_x))
-        """
-        <class 'torch.Tensor'>
-        <class 'torch.Tensor'>
-        <class 'torch.Tensor'>
-        """
+
         tmp = self.f_k(h_pl, c_x)
-        # print(self.f_k)# Bilinear(in1_features=512, in2_features=512, out_features=1, bias=True)
-        # print('tmp.shape:',tmp.shape)# tmp.shape: torch.Size([1, 2485, 1])
-        # c_x:[1,1,512]  h_pl:[1, 2485, 512]
-        """
-        X1_T*A*X2
-        [1, 2485, 512]*[512,1]->[1,2485,1]*[1,1,512]
-        """
+
         sc_1 = torch.squeeze(tmp, 2)
-        # print('sc_1正:',sc_1.shape)#torch.Size([1, 2485])
         sc_2 = torch.squeeze(self.f_k(h_mi, c_x), 2)
-        # print('sc_2负:', sc_1.shape)# torch.Size([1, 2485])
+
         if s_bias1 is not None:
             sc_1 += s_bias1
         if s_bias2 is not None:
             sc_2 += s_bias2
 
         logits = torch.cat((sc_1, sc_2), 1)
-        # print('logits.shape:',logits.shape)#  torch.Size([1, 4970])
         return logits
 
 class LogReg(nn.Module):

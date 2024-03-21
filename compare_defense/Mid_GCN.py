@@ -1,17 +1,9 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-# @Time    : 2023/4/17 20:54
-
-# @File    : Mid_GCN.py
-# @Project : Pure_GNN
-# @Software: PyCharm
-
 import numpy as np
 import scipy.sparse as sp
 import torch
 import torch
 import torch.nn as nn
-from torch_sparse import spmm  # require the newest torch_sprase
+from torch_sparse import spmm
 import torch.nn.functional as F
 from deeprobust.graph import utils
 from copy import deepcopy
@@ -78,21 +70,16 @@ class DeepGCN(nn.Module):
         x = self.dropout(x)
         x = self.out_layer(x, adj)
         x = torch.log_softmax(x, dim=-1)
-        # print(x.shape)
         return x
 
 
     def fit(self, features, adj, labels, idx_train, idx_val=None, idx_test=None, train_iters=81, initialize=True, verbose=False, normalize=False, patience=510, ):
-        '''
-            train the gcn conv, when idx_val is not None, pick the best conv
-            according to the validation loss
-        '''
-        # print(self.device)
+
         self.sim = None
         self.idx_test = idx_test
         if initialize:
             self.initialize()
-        # print(type(adj))# <class 'scipy.sparse._csr.csr_matrix'>
+
         if type(adj) is not torch.Tensor:
             features, adj, labels = utils.to_tensor(features, adj, labels, device=self.device)
         else:
@@ -138,7 +125,7 @@ class DeepGCN(nn.Module):
         best_acc_val = 0
 
         for i in range(train_iters):
-            # print('epoch', i)
+
             self.train()
             optimizer.zero_grad()
             output = self.forward(self.features, self.adj_norm)
@@ -149,7 +136,6 @@ class DeepGCN(nn.Module):
 
             loss_val = F.nll_loss(output[idx_val], labels[idx_val])
             acc_val = utils.accuracy(output[idx_val], labels[idx_val])
-            # acc_test = utils.accuracy(output[self.idx_test], labels[self.idx_test])
 
             if verbose and i % 5 == 0:
                 print('Epoch {}, training loss: {}, val acc: {}, '.format(i, loss_train.item(), acc_val))
@@ -168,10 +154,6 @@ class DeepGCN(nn.Module):
         if verbose:
             print('=== picking the best conv according to the performance on validation ===')
         self.load_state_dict(weights)
-        # """my test"""
-        # output_ = self.forward(self.features, self.adj_norm)
-        # acc_test_ = utils.accuracy(output_[self.idx_test], labels[self.idx_test])
-        # print('With best weights, test acc:', acc_test_)
 
     def _train_with_early_stopping(self, labels, idx_train, idx_val, train_iters, patience, verbose):
         if verbose:
@@ -214,7 +196,7 @@ class DeepGCN(nn.Module):
 
     def test(self, idx_test):
         self.eval()
-        output = self.predict()  # here use the self.features and self.adj_norm in training stage
+        output = self.predict()
         loss_test = F.nll_loss(output[idx_test], self.labels[idx_test])
         acc_test = utils.accuracy(output[idx_test], self.labels[idx_test])
         print("Test set results:",
@@ -227,7 +209,6 @@ class DeepGCN(nn.Module):
         pass
 
     def predict(self, features=None, adj=None):
-        '''By default, inputs are unnormalized data'''
         self.eval()
         if features is None and adj is None:
             return self.forward(self.features, self.adj_norm)
@@ -245,7 +226,6 @@ class DeepGCN(nn.Module):
 
 
 def to_torch_sparse(sparse_mx):
-    """Convert a scipy sparse matrix to a torch sparse tensor."""
     sparse_mx = sparse_mx.tocoo().astype(np.float32)
     indices = torch.from_numpy(
         np.vstack((sparse_mx.row, sparse_mx.col)).astype(np.int64))
@@ -255,8 +235,6 @@ def to_torch_sparse(sparse_mx):
 
 
 def middle_normalize_adj(adj, alpha):
-    """Middle normalize adjacency matrix."""
-    # add self-loop and normalization also affects performance a lot
     rowsum = np.array(adj.sum(1))
     d_inv_sqrt = np.power(rowsum, -0.5).flatten()
     d_inv_sqrt[np.isinf(d_inv_sqrt)] = 0.

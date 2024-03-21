@@ -1,28 +1,18 @@
-# _*_codeing=utf-8_*_
-# @Time:2022/4/10  12:05
-# @File:adj_changes.py
-
 from deeprobust.graph.defense import GCN, GAT, RGCN, GCNSVD, GCNJaccard, SimPGCN, MedianGCN,ProGNN
 from deeprobust.graph.utils import preprocess
-from compare_defense.elastic_gnn import ElasticGNN
 import torch_geometric.transforms as T
 import time
 from utils.utils_2 import *
 from compare_defense.GNNGuard import GNNGuard
 
 
-
 def GCN_(data, device, arg):
-    # Setup GCN Model
     features, labels, adj = data.features, data.labels, data.adj
     idx_train, idx_val, idx_test = data.idx_train, data.idx_val, data.idx_test
     pyg_data = Dpr2Pyg(data)
     model = GCN(nfeat=features.shape[1], nhid=128, nclass=int(labels.max()) + 1,
                 device=device,lr=0.01,dropout=0.0,weight_decay=5e-4)
     model = model.to(device)
-
-    # print(mod)
-    # # using validation to pick conv
     start = time.perf_counter()
     model.fit(features, adj, labels, idx_train, idx_val, train_iters=200, verbose=False,with_bias=False)
     end = time.perf_counter()
@@ -32,19 +22,18 @@ def GCN_(data, device, arg):
 
 
 def GAT_(data, device, arg):
-    # start = time.perf_counter()
+
     features, labels, adj = data.features, data.labels, data.adj
     idx_train, idx_val, idx_test = data.idx_train, data.idx_val, data.idx_test
 
     pyg_data = Dpr2Pyg(data)
-    # print(pyg_data[0])
     gat = GAT(nfeat=features.shape[1],
               nhid=16, heads=8,
               nclass=labels.max().item() + 1,
               dropout=0., device=device,lr=0.01,weight_decay=5e-4)
     gat = gat.to(device)
     start = time.perf_counter()
-    gat.fit(pyg_data, train_iters=200,verbose=False)  # train with earlystopping
+    gat.fit(pyg_data, train_iters=200,verbose=False)
     end = time.perf_counter()
     output = gat.test()
     return output,end-start
@@ -85,8 +74,6 @@ def GCN_Jaccard(data, device, arg):
 def R_GCN(data, device, arg):
     features, labels, adj = data.features, data.labels, data.adj
     idx_train, idx_val, idx_test = data.idx_train, data.idx_val, data.idx_test
-    # print(type(adj))
-    # print(type(features))
     features = sp.csr_matrix(features)
     model = RGCN(nnodes=adj.shape[0], nfeat=features.shape[1], nclass=labels.max() + 1,
                  nhid=128, device=device,lr=0.01,dropout=0.0)
@@ -104,13 +91,7 @@ def GNN_Guard(data, device, arg):
     idx_train, idx_val, idx_test = data.idx_train, data.idx_val, data.idx_test
 
     if torch.is_tensor(adj):
-        # print('test')
         adj = sp.csr_matrix(adj.cpu().numpy())
-        # print(type(adj))
-    ''' testing conv '''
-
-    # print(args.modelname)
-    # print(device)
     model = GNNGuard(nfeat=features.shape[1], nhid=128, nclass=labels.max().item() + 1,
                      dropout=0.0, device=device,lr=0.01,weight_decay=5e-4)
     model = model.to(device)
@@ -119,7 +100,7 @@ def GNN_Guard(data, device, arg):
     model.fit(features, adj, labels, idx_train, train_iters=200,
               idx_val=idx_val,
               idx_test=idx_test,
-              verbose=False, attention=True)  # idx_val=idx_val, idx_test=idx_test , model_name=model_name
+              verbose=False, attention=True)
     end = time.perf_counter()
     model.eval()
     output = model.test(idx_test)
@@ -151,7 +132,6 @@ def Pro_GCN(data, device, arg):
 
 
 def Median_GCN(data, device, arg):
-    # print(data)
     features, labels, adj = data.features, data.labels, data.adj
     pyg_data = Dpr2Pyg(data)
     model = MedianGCN(nfeat=features.shape[1], nhid=128, nclass=labels.max().item() + 1,
@@ -171,7 +151,6 @@ def Simp_GCN(data, device, arg):
 
     features, labels, adj = data.features, data.labels, data.adj
     idx_train, idx_val, idx_test = data.idx_train, data.idx_val, data.idx_test
-    print(arg)
     model = SimPGCN(nnodes=features.shape[0], nfeat=features.shape[1], nhid=128,
                     nclass=int(labels.max()) + 1, device=device,lr=0.01,dropout=0.,
                     lambda_ = arg.get('lambda_'),gamma=arg.get('gama_')
@@ -186,28 +165,6 @@ def Simp_GCN(data, device, arg):
     return output,end-start
 
 
-def Elastic_GCN(data, device, arg):
-    adj, features, labels = data.adj, data.features, data.labels
-
-    model = ElasticGNN(nfeat=features.shape[1], nhid=128, nclass=labels.max().item() + 1,
-                       device=device,lr=0.01,dropout=0.0,lambda_1=arg.get('lambda_1'),lambda_2=arg.get('lambda_2'),)
-    model = model.to(device)
-    row, col = np.diag_indices_from(adj)
-    data.adj[row,col] = 0
-    pyg_data = Dpr2Pyg(data)
-
-    transform = T.Compose([T.NormalizeFeatures(), T.ToSparseTensor()])
-    data1 = transform(pyg_data)
-
-    start = time.perf_counter()
-    model.fit(data1,train_iters=200)  # train with earlystopping
-    end = time.perf_counter()
-
-    model.eval()
-    output = model.test(data1)
-    return output,end-start
-
-
 from STABLE import get_contrastive_emb,preprocess_adj,get_logger,to_tensor,to_scipy,sparse_mx_to_sparse_tensor,get_reliable_neighbors,adj_new_norm
 
 logger = get_logger('./try.log')
@@ -217,8 +174,6 @@ def STABLE(data, device, args):
     start = args.start
 
     adj, features, labels = data.adj, data.features, data.labels
-    # print(data.adj.shape)
-    print('process:',len(data.adj.nonzero()[0]))
     logger.info('===train ours on perturbed graph===')
     adj_temp = sparse_mx_to_sparse_tensor(adj)
     # add k new neighbors to each node
@@ -231,9 +186,8 @@ def STABLE(data, device, args):
     adj_temp = adj_new_norm(adj_temp, args.alpha,device)
     adj_temp = to_scipy(adj_temp)
 
-    # features = to_tensor()
     model.fit(features, adj_temp, labels, data.idx_train, data.idx_val,
-              train_iters=200, verbose=False,with_bias=False,device=device)  # train with earlystopping
+              train_iters=200, verbose=False,with_bias=False,device=device)
     end = time.time()
 
     model.eval()
@@ -316,15 +270,6 @@ def test_clean():
                     args['alpha'] = alpha_arr[random.randint(0, 5)]
                     print(args)
 
-
-                if defense == 'ElasticGCN':
-                    args = {}
-                    lambda_ = [0,3,6,9]
-
-                    args['lambda_1'] = lambda_[random.randint(0, 3)]
-                    args['lambda_2'] = lambda_[random.randint(0, 3)]
-                    print(args)
-
                 if defense =='STABLE':
                     from STABLE import args
 
@@ -343,7 +288,6 @@ def test_clean():
                     embeds = embeds.to('cpu')
                     embeds = to_scipy(embeds)
 
-                    # prune the perturbed graph by the representations
                     adj_clean = preprocess_adj(embeds, perturbed_adj_sparse, logger, jaccard=False,
                                                threshold=args.cos)
                     data.adj = adj_clean
@@ -420,32 +364,17 @@ def test_global():
                         if defense == 'GCNSVD':
                             k_arr = [5, 10, 15, 50, 100, 200]
                             arg = k_arr[random.randint(0, 5)]
-                            # arg = 5
 
                         if defense == 'SimpGCN':
                             arg = {}
                             lambda_arr = [0.1,0.5,1,5,10,50,100]
                             arg['lambda_'] = lambda_arr[random.randint(0, 6)]
-                            # arg['lambda_'] = 100
-                            # gama_arr = [0.01,0.1]
-                            # arg['gama_']= gama_arr[random.randint(0,9)]
                             arg['gama_']=random.uniform(0.01, 0.1)
-                            # arg['gama_'] = 0.01
-
-                        if defense == 'ElasticGCN':
-                            arg = {}
-                            lambda_ = [0, 3, 6, 9]
-
-                            arg['lambda_1'] = lambda_[random.randint(0, 3)]
-                            arg['lambda_2'] = lambda_[random.randint(0, 3)]
-                            print(arg)
 
                         if defense == 'Mid_GCN':
                             arg = {}
                             alpha_arr = [0.2, 0.3, 0.5, 0.55,0.6, 2.0]
                             arg['alpha'] = alpha_arr[random.randint(0, 5)]
-                            # arg['alpha'] = 0.2
-                            # print(arg)
 
                         if defense == 'ProGCN':
                             from Pro_GCN import args
@@ -496,8 +425,6 @@ def test_global():
 
                             embeds = embeds.to('cpu')
                             embeds = to_scipy(embeds)
-
-                            # prune the perturbed graph by the representations
                             adj_clean = preprocess_adj(embeds, perturbed_adj_sparse, logger, jaccard=False,
                                                        threshold=args.cos)
                             data.adj = adj_clean
@@ -587,13 +514,6 @@ def test_target():
                             arg['alpha'] = alpha_arr[random.randint(0, 5)]
                             print(arg)
 
-                        if defense == 'ElasticGCN':
-                            arg = {}
-                            lambda_ = [0, 3, 6, 9]
-
-                            arg['lambda_1'] = lambda_[random.randint(0, 3)]
-                            arg['lambda_2'] = lambda_[random.randint(0, 3)]
-                            print(arg)
 
                         if defense == 'STABLE':
                             from STABLE import args
@@ -630,7 +550,7 @@ def test_target():
                             perturbed_adj_sparse = data.adj
                             adj_pre = preprocess_adj(data.features, perturbed_adj_sparse, logger, threshold=args.jt)
                             adj_delete = perturbed_adj_sparse - adj_pre
-                            # print(adj_delete)
+
                             _, features = to_tensor(perturbed_adj_sparse, data.features)
 
                             print('===start getting contrastive embeddings===')
@@ -644,14 +564,11 @@ def test_target():
                             embeds = embeds.to('cpu')
                             embeds = to_scipy(embeds)
 
-                            # prune the perturbed graph by the representations
-                            # print()
                             adj_clean = preprocess_adj(embeds, perturbed_adj_sparse, logger, jaccard=False,
                                                        threshold=args.cos)
-                            # print(len(adj_clean.nonzero()))
                             data.adj = adj_clean
                             arg = args
-                            # STABLE(data,device,arg)
+
 
                         print(function)
                         output, times = eval(function)(data, device, arg)

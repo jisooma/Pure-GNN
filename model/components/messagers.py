@@ -1,8 +1,3 @@
-# _*_codeing=utf-8_*_
-# @Time:2022/11/14  16:04
-
-# @File:messagers.py
-
 import torch
 from torch import Tensor
 
@@ -24,7 +19,6 @@ def message_gat(
             size_i: Optional[int],
             ) -> Tensor:
     alpha = alpha_j if alpha_i is None else alpha_j + alpha_i
-
     alpha = F.leaky_relu(alpha, 0.2)
     alpha = softmax(alpha, index, ptr, size_i)
     return x_j*alpha
@@ -34,11 +28,8 @@ def message_euclidean(beta,x_i: Tensor,x_j: Tensor,
                 index: Tensor,ptr: OptTensor,
                 size_i=Optional[int],):
     i_j = F.normalize((x_i - x_j), p=2, dim=-1)
-
     alpha = beta*i_j.sum(dim=-1)
-
     alpha = softmax(alpha, index, ptr, size_i)
-    # print(alpha.view(-1, 1).shape)
     x_j = alpha.view(-1, 1) * x_j
     return x_j, alpha
 
@@ -47,11 +38,8 @@ def message_chebyshev(beta,x_i: Tensor,x_j: Tensor,
                 index: Tensor,ptr: OptTensor,
                 size_i=Optional[int],):
     i_j_max = torch.max(torch.abs(x_i - x_j),dim=1)
-
     alpha = beta * i_j_max.sum(dim=-1)
-
     alpha = softmax(alpha, index, ptr, size_i)
-    # print(alpha.view(-1, 1).shape)
     x_j = alpha.view(-1, 1) * x_j
     return x_j, alpha
 
@@ -59,14 +47,10 @@ def message_chebyshev(beta,x_i: Tensor,x_j: Tensor,
 def message_braycurtis(beta,x_i: Tensor,x_j: Tensor,
                 index: Tensor,ptr: OptTensor,
                 size_i=Optional[int]):
-    # pass
     l1_diff = torch.abs(x_i-x_j)
     l1_sum = torch.abs(x_i+x_j)
-
     alpha = beta * torch.div((l1_diff.sum(dim=1)),(l1_sum.sum(dim=1)))
-
     alpha = softmax(alpha, index, ptr, size_i)
-    # print(alpha.view(-1, 1).shape)
     x_j = alpha.view(-1, 1) * x_j
 
     return x_j, alpha
@@ -74,15 +58,11 @@ def message_braycurtis(beta,x_i: Tensor,x_j: Tensor,
 def message_canberra(beta,x_i: Tensor,x_j: Tensor,
                 index: Tensor,ptr: OptTensor,
                 size_i=Optional[int]):
-    # pass
     abs_i_j = torch.abs(x_i - x_j)
     abs_i = torch.abs(x_i)
     abs_j = torch.abs(x_j)
-
     alpha = beta * torch.div(abs_i_j, (abs_j+abs_i))
-
     alpha = softmax(alpha, index, ptr, size_i)
-    # print(alpha.view(-1, 1).shape)
     x_j = alpha.view(-1, 1) * x_j
 
     return x_j, alpha
@@ -92,9 +72,7 @@ def message_cityblock(beta,x_i: Tensor,x_j: Tensor,
                 size_i=Optional[int]):
     abs_i_j = torch.abs(x_i - x_j)
     alpha = beta * abs_i_j.sum(dim=1)
-
     alpha = softmax(alpha, index, ptr, size_i)
-    # print(alpha.view(-1, 1).shape)
     x_j = alpha.view(-1, 1) * x_j
 
     return x_j, alpha
@@ -103,21 +81,16 @@ def message_sqeuclidean(beta,x_i: Tensor,x_j: Tensor,
                 index: Tensor,ptr: OptTensor,
                 size_i=Optional[int]):
     i_j = x_i - x_j
-
     i_j_dot = torch.dot(x_i,x_j)
     alpha = beta * i_j.sum(dim=-1)
-
     alpha = softmax(alpha, index, ptr, size_i)
-    # print(alpha.view(-1, 1).shape)
     x_j = alpha.view(-1, 1) * x_j
     return x_j, alpha
 
 
 def message_jaccard_similiarity(beta,x_j: Tensor, alpha_i: Tensor,index, ptr, size_i,):
     x_norm = beta*alpha_i
-
     alpha = softmax(x_norm, index, ptr, size_i)
-
     return alpha.view(-1, 1)*x_j
 
 def message_cosine_similiarity(beta,x_j: Tensor,
@@ -146,8 +119,6 @@ def message_cosine_similiarity_1(
 def messsage_others_similarity():
     pass
 
-
-
 def message_cos(x_j: Tensor,alpha_j: Tensor, alpha_i: OptTensor,index, ptr, size_i,):
     x_norm = alpha_i+alpha_j
     alpha = softmax(x_norm, index, ptr, size_i)
@@ -162,7 +133,6 @@ def message_linear(x_j: Tensor,
     alpha = alpha_j if alpha_i is None else alpha_j + alpha_i
     alpha = F.tanh(input=alpha)
     alpha = softmax(alpha, index, ptr, size_i)
-    # alpha = F.dropout(alpha, p=0, training=self.training)
     return x_j * alpha
 
 def message_gen_linear(w,x_j: Tensor, x_norm_i: Tensor, x_norm_j: Tensor,index, ptr, size_i,*kwargs):
@@ -179,14 +149,13 @@ def message_gat_1(
             size_i: Optional[int],
             ) -> Tensor:
     alpha = torch.cat((alpha_i,alpha_j),dim=1)
-    # negative_slope=0.2
     alpha = F.leaky_relu(alpha, 0.2)
     alpha = softmax(alpha, index, ptr, size_i)
     return x_j*alpha
 
 
 def message_gat_2(
-            a,#2F'
+            a,
             x_i:Tensor,
             x_j: Tensor,
             index: Tensor, ptr: OptTensor,
@@ -195,13 +164,12 @@ def message_gat_2(
             ) -> Tensor:
 
     alpha = a*torch.cat((x_i,x_j),dim=0)
-    # negative_slope=0.2
     alpha = F.leaky_relu(alpha, 0.2)
     alpha = softmax(alpha, index, ptr, size_i)
     return x_j*alpha
 
 def message_gat_3(
-            a,#F'
+            a,
             x_i:Tensor,
             x_j: Tensor,
             index: Tensor, ptr: OptTensor,
@@ -210,7 +178,6 @@ def message_gat_3(
             ) -> Tensor:
 
     alpha = a*(x_i+x_j)
-    # negative_slope=0.2
     alpha = F.leaky_relu(alpha, 0.2)
     alpha = softmax(alpha, index, ptr, size_i)
     return x_j*alpha
@@ -222,7 +189,6 @@ def message_linear_1(x_j: Tensor,
     alpha = torch.sum(x_j,dim=0)
     alpha = F.tanh(input=alpha)
     alpha = softmax(alpha, index, ptr, size_i)
-    # alpha = F.dropout(alpha, p=0, training=self.training)
     return x_j * alpha.unsqueeze(-1)
 
 
@@ -244,17 +210,13 @@ def message_cure_gnn():
 
 
 MESSAGERS = {
-
     'message_const':message_const,
     'gcn':message_gcn,
     'const':message_const,
-
     'gat': message_gat,
     'cos':message_cos,
     'linear': message_linear,
     'gen_linear':message_gen_linear,
-
-
     'jac_sim': message_jaccard_similiarity,
     'cos_sim': message_cosine_similiarity,
     'cos_sim_1': message_cosine_similiarity_1,

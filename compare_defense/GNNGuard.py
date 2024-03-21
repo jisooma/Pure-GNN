@@ -17,8 +17,6 @@ from torch.nn import Sequential, Linear, ReLU
 from sklearn.preprocessing import normalize
 from scipy.sparse import lil_matrix
 
-
-
 class GNNGuard(nn.Module):
 
     def __init__(self, nfeat, nhid, nclass, dropout=0.5, lr=0.01, drop=True,
@@ -35,7 +33,7 @@ class GNNGuard(nn.Module):
         self.dropout = dropout
         self.lr = lr
 
-        weight_decay =0  # set weight_decay as 0
+        weight_decay =0
 
         if not with_relu:
             self.weight_decay = 0
@@ -49,69 +47,21 @@ class GNNGuard(nn.Module):
         self.best_output = None
         self.adj_norm = None
         self.features = None
-        self.gate = Parameter(torch.rand(1)) # creat a generator between [0,1]
-        # self.test_value = Parameter(torch.rand(1))
+        self.gate = Parameter(torch.rand(1))
         self.drop_learn_1 = Linear(2, 1)
-        # self.drop_learn_2 = Linear(2, 1)
         self.drop = drop
-        # self.bn1 = torch.nn.BatchNorm1d(nhid)
-        # self.bn2 = torch.nn.BatchNorm1d(nhid)
         nclass = int(nclass)
 
-        """GCN from geometric"""
-        """network from torch-geometric, """
         self.gc1 = GCNConv(nfeat, nhid, bias=True,)
         self.gc2 = GCNConv(nhid, nclass, bias=True, )
 
-
-        """GAT from torch-geometric"""
-        # nclass = int(nclass)
-        # self.gc1 = GATConv(nfeat, nhid, heads=8, dropout=0.6)
-        # self.gc2 = GATConv(nhid*8, nclass, heads=1, concat=True, dropout=0.6)
-
-        """GIN from torch-geometric"""
-        # dim = 32
-        # nn1 = Sequential(Linear(nfeat, dim), ReLU(), )
-        # self.gc1 = GINConv(nn1)
-        # # self.bn1 = torch.nn.BatchNorm1d(dim)
-        # nn2 = Sequential(Linear(dim, dim), ReLU(), )
-        # self.gc2 = GINConv(nn2)
-        # self.jump = JumpingKnowledge(mode='cat')
-        # # self.bn2 = torch.nn.BatchNorm1d(dim)
-        # self.fc2 = Linear(dim, int(nclass))
-
-        # """JK-Nets"""
-        # num_features = nfeat
-        # dim = 32
-        # nn1 = Sequential(Linear(num_features, dim), ReLU(), )
-        # self.gc1 = GINConv(nn1)
-        # self.bn1 = torch.nn.BatchNorm1d(dim)
-        #
-        # nn2 = Sequential(Linear(dim, dim), ReLU(), )
-        # self.gc2 = GINConv(nn2)
-        # nn3 = Sequential(Linear(dim, dim), ReLU(), )
-        # self.gc3 = GINConv(nn3)
-        #
-        # self.jump = JumpingKnowledge(mode='cat') # 'cat', 'lstm', 'max'
-        # self.bn2 = torch.nn.BatchNorm1d(dim)
-        # # self.fc1 = Linear(dim*3, dim)
-        # self.fc2 = Linear(dim*2, int(nclass))
-
     def forward(self, x, adj):
         start= time.time()
-        """we don't change the edge_index, just update the edge_weight;
-        some edge_weight are regarded as removed if it equals to zero"""
         x = x.to_dense()
-        # print(adj.shape)#
-        # print(type(adj))
-        """GCN and GAT"""
-        # t1 =
         t1 = time.time()
         if self.attention:
             adj = self.att_coef(x, adj, i=0)
-        # adj = adj.cuda()
         t2 = time.time()
-        # print('attention_1',t2-t1)
         edge_index = adj._indices()
         edge_index = edge_index.cuda()
         x = x.cuda()
@@ -119,11 +69,9 @@ class GNNGuard(nn.Module):
         x = self.gc1(x, edge_index, edge_weight=adj._values())
         x = F.relu(x)
         t3 = time.time()
-        if self.attention:  # if attention=True, use attention mechanism
-            # print('attention')
+        if self.attention:
             adj_2 = self.att_coef(x, adj, i=1)
             adj_memory = adj_2.to_dense()  # without memory
-            # adj_memory = self.gate * adj.to_dense() + (1 - self.gate) * adj_2.to_dense()
             row, col = adj_memory.nonzero()[:,0], adj_memory.nonzero()[:,1]
             edge_index = torch.stack((row, col), dim=0)
             adj_values = adj_memory[row, col]
@@ -131,53 +79,19 @@ class GNNGuard(nn.Module):
             edge_index = adj._indices()
             adj_values = adj._values()
         t4 = time.time()
-        # print('attention_2',t4-t3)
         x = x.cuda()
         edge_index = edge_index.cuda()
         adj_values =adj_values.cuda()
         x = F.dropout(x, self.dropout, training=self.training)
         x = self.gc2(x, edge_index, edge_weight=adj_values)
-        # """GIN"""
-        # if self.attention:
-        #     adj = self.att_coef(x, adj, i=0)
-        # x = F.relu(self.gc1(x, edge_index=edge_index, edge_weight=adj._values()))
-        # if self.attention:  # if attention=True, use attention mechanism
-        #     adj_2 = self.att_coef(x, adj, i=1)
-        #     adj_values = self.gate * adj._values() + (1 - self.gate) * adj_2._values()
-        # else:
-        #     adj_values = adj._values()
-        # x = F.dropout(x, p=0.2, training=self.training)
-        # x = F.relu(self.gc2(x, edge_index=edge_index, edge_weight=adj_values))
-        # # x = [x] ### Add Jumping        # x = self.jump(x)
-        # x = F.dropout(x, p=0.2,training=self.training)
-        # x = self.fc2(x)
 
-        # """JK-Nets"""
-        # if self.attention:
-        #     adj = self.att_coef(x, adj, i=0)
-        # x1 = F.relu(self.gc1(x, edge_index=edge_index, edge_weight=adj._values()))
-        # if self.attention:  # if attention=True, use attention mechanism
-        #     adj_2 = self.att_coef(x1, adj, i=1)
-        #     adj_values = self.gate * adj._values() + (1 - self.gate) * adj_2._values()
-        # else:
-        #     adj_values = adj._values()
-        # x1 = F.dropout(x1, self.dropout, training=self.training)
-        # x2 = F.relu(self.gc2(x1, edge_index=edge_index, edge_weight=adj_values))
-        # x2 = F.dropout(x2, self.dropout, training=self.training)
-        # x_last = self.jump([x1, x2])
-        # x_last = F.dropout(x_last, self.dropout,training=self.training)
-        # x = self.fc2(x_last)
-        # print(x.shape)
-        # print(x)
         end = time.time()
-        # print('end-start',end-start)
         return F.log_softmax(x, dim=1)
 
     def initialize(self):
         self.gc1.reset_parameters()
         self.gc2.reset_parameters()
         self.drop_learn_1.reset_parameters()
-        # self.drop_learn_2.reset_parameters()
         try:
             self.gate.reset_parameters()
             self.fc2.reset_parameters()
@@ -195,26 +109,9 @@ class GNNGuard(nn.Module):
 
         fea_copy = fea.cpu().data.numpy()
         sim_matrix = cosine_similarity(X=fea_copy, Y=fea_copy)  # try cosine similarity
-        # print(sim_matrix.shape)
         sim = sim_matrix[row, col]
-        # print(sim)
-        # print(sim.shape)#(12623,)
         sim[sim<0.1] = 0
-        # print('dropped {} edges'.format(1-sim.nonzero()[0].shape[0]/len(sim)))
 
-        # """use jaccard for binary features and cosine for numeric features"""
-        # fea_start, fea_end = fea[edge_index[0]], fea[edge_index[1]]
-        # isbinray = np.array_equal(fea_copy, fea_copy.astype(bool))  # check is the fea are binary
-        # np.seterr(divide='ignore', invalid='ignore')
-        # if isbinray:
-        #     fea_start, fea_end = fea_start.T, fea_end.T
-        #     sim = jaccard_score(fea_start, fea_end, average=None)  # similarity scores of each edge
-        # else:
-        #     fea_copy[np.isinf(fea_copy)] = 0
-        #     fea_copy[np.isnan(fea_copy)] = 0
-        #     sim_matrix = cosine_similarity(X=fea_copy, Y=fea_copy)  # try cosine similarity
-        #     sim = sim_matrix[edge_index[0], edge_index[1]]
-        #     sim[sim < 0.01] = 0
 
         """build a attention matrix"""
         att_dense = lil_matrix((n_node, n_node), dtype=np.float32)
@@ -229,49 +126,42 @@ class GNNGuard(nn.Module):
         if self.drop:
             character = np.vstack((att_dense_norm[row, col].A1,
                                      att_dense_norm[col, row].A1))
-            # print(character[0])
-            # print(character.shape)#(2, 12623)
+
             character = torch.from_numpy(character.T)
-            # print(character.shape)# torch.Size([12623, 2])
-            character = character.to(self.device) # gpu 涉及到反向传播
+
+            character = character.to(self.device)
             drop_score = self.drop_learn_1(character)
-            drop_score = torch.sigmoid(drop_score)  # do not use softmax since we only have one element
-            mm = torch.nn.Threshold(0.5, 0)# 如果x大于0.5,那么x为本身,如果x小于0.5,为0.
+            drop_score = torch.sigmoid(drop_score)
+            mm = torch.nn.Threshold(0.5, 0)
             drop_score = mm(drop_score)
-            mm_2 = torch.nn.Threshold(-0.49, 1) # 如果x大于-0.49,那么x为本身,如果x小于-0.49,为1.
+            mm_2 = torch.nn.Threshold(-0.49, 1)
             drop_score = mm_2(-drop_score)
             drop_decision = drop_score.clone().requires_grad_()
-            # print(drop_decision)# 0/1
-            # print('rate of left edges', drop_decision.sum().data/drop_decision.shape[0])
             drop_matrix = lil_matrix((n_node, n_node), dtype=np.float32)
             drop_matrix[row, col] = drop_decision.cpu().data.numpy().squeeze(-1)
-            att_dense_norm = att_dense_norm.multiply(drop_matrix.tocsr())  # update, remove the 0 edges
-            # print(att_dense_norm)
+            att_dense_norm = att_dense_norm.multiply(drop_matrix.tocsr())
 
-        if att_dense_norm[0, 0] == 0:  # add the weights of self-loop only add self-loop at the first layer
+        if att_dense_norm[0, 0] == 0:
 
             degree = (att_dense_norm != 0).sum(1).A1
-            lam = 1 / (degree + 1) # degree +1 is to add itself
+            lam = 1 / (degree + 1)
             self_weight = sp.diags(np.array(lam), offsets=0, format="lil")
-            att = att_dense_norm + self_weight  # add the self loop
-            # print(att)
+            att = att_dense_norm + self_weight
         else:
             att = att_dense_norm
 
         row, col = att.nonzero()
         att_adj = np.vstack((row, col))
         att_edge_weight = att[row, col]
-        att_edge_weight = np.exp(att_edge_weight)   # exponent, kind of softmax
-        att_edge_weight = torch.tensor(np.array(att_edge_weight)[0], dtype=torch.float32)#.cuda()
-        att_adj = torch.tensor(att_adj, dtype=torch.int64)#.cuda()
+        att_edge_weight = np.exp(att_edge_weight)
+        att_edge_weight = torch.tensor(np.array(att_edge_weight)[0], dtype=torch.float32)
+        att_adj = torch.tensor(att_adj, dtype=torch.int64)
 
         shape = (n_node, n_node)
         new_adj = torch.sparse.FloatTensor(att_adj, att_edge_weight, shape)
-        # print(new_adj)# 在cpu上
         return new_adj
 
     def add_loop_sparse(self, adj, fill_value=1):
-        # make identify sparse tensor
         row = torch.range(0, int(adj.shape[0]-1), dtype=torch.int64)
         i = torch.stack((row, row), dim=0)
         v = torch.ones(adj.shape[0], dtype=torch.float32)
@@ -281,52 +171,20 @@ class GNNGuard(nn.Module):
 
     def fit(self, features, adj, labels, idx_train, idx_val=None, idx_test=None, train_iters=81, att_0=None,
             attention=False, model_name=None, initialize=True, verbose=False, normalize=False, patience=510, ):
-        '''
-            train the gcn conv, when idx_val is not None, pick the best conv
-            according to the validation loss
-        '''
-        # print(self.device)
         self.sim = None
         self.idx_test = idx_test
         self.attention = attention
-        # if self.attention:
-        #     att_0 = self.att_coef_1(features, adj)
-        #     adj = att_0 # update adj
-        #     self.sim = att_0 # update att_0
 
-        # self.device = self.gc1.weight.device
-        # print(len(adj.nonzero()[0]))
-        # print()
         if initialize:
             self.initialize()
-        # print(type(adj))# <class 'scipy.sparse._csr.csr_matrix'>
         if type(adj) is not torch.Tensor:
             features, adj, labels = utils.to_tensor(features, adj, labels, device=self.device)
-            # print(type(adj))
-            # print(type(features))
-            # print(type(labels))
-            """
-            <class 'torch.Tensor'>
-            <class 'torch.Tensor'>
-            <class 'torch.Tensor'>
-            """
+
         else:
             features = features.to(self.device)
             adj = adj.to(self.device)
             labels = labels.to(self.device)
-        # print(len(adj.nonzero()[0]))
-        # normalize = False # we don't need normalize here, the norm is conducted in the GCN (self.gcn1) conv
-        # if normalize:
-        #     if utils.is_sparse_tensor(adj):
-        #         adj_norm = utils.normalize_adj_tensor(adj, sparse=True)
-        #     else:
-        #         adj_norm = utils.normalize_adj_tensor(adj)
-        # else:
-        #     adj_norm = adj
-        # add self loop
-        # 在读取的时候已经加了自环，注释
-        # adj = self.add_loop_sparse(adj)
-        # print(type(adj))
+
         """The normalization gonna be done in the GCNConv"""
         self.adj_norm = adj
         self.features = features
@@ -346,7 +204,7 @@ class GNNGuard(nn.Module):
         for i in range(train_iters):
             optimizer.zero_grad()
             output = self.forward(self.features, self.adj_norm)
-            loss_train = F.nll_loss(output[idx_train], labels[idx_train], weight=None)   # this weight is the weight of each training nodes
+            loss_train = F.nll_loss(output[idx_train], labels[idx_train], weight=None)
             loss_train.backward()
             optimizer.step()
             if verbose and i % 20 == 0:
@@ -365,7 +223,6 @@ class GNNGuard(nn.Module):
         best_acc_val = 0
 
         for i in range(train_iters):
-            # print('epoch', i)
             self.train()
             optimizer.zero_grad()
             output = self.forward(self.features, self.adj_norm)
@@ -376,7 +233,6 @@ class GNNGuard(nn.Module):
 
             loss_val = F.nll_loss(output[idx_val], labels[idx_val])
             acc_val = utils.accuracy(output[idx_val], labels[idx_val])
-            # acc_test = utils.accuracy(output[self.idx_test], labels[self.idx_test])
 
             if verbose and i % 5 == 0:
                 print('Epoch {}, training loss: {}, val acc: {}, '.format(i, loss_train.item(), acc_val))
@@ -395,10 +251,6 @@ class GNNGuard(nn.Module):
         if verbose:
             print('=== picking the best conv according to the performance on validation ===')
         self.load_state_dict(weights)
-        # """my test"""
-        # output_ = self.forward(self.features, self.adj_norm)
-        # acc_test_ = utils.accuracy(output_[self.idx_test], labels[self.idx_test])
-        # print('With best weights, test acc:', acc_test_)
 
     def _train_with_early_stopping(self, labels, idx_train, idx_val, train_iters, patience, verbose):
         if verbose:
@@ -441,7 +293,7 @@ class GNNGuard(nn.Module):
 
     def test(self, idx_test):
         self.eval()
-        output = self.predict()  # here use the self.features and self.adj_norm in training stage
+        output = self.predict()
         loss_test = F.nll_loss(output[idx_test], self.labels[idx_test])
         acc_test = utils.accuracy(output[idx_test], self.labels[idx_test])
         print("Test set results:",
@@ -475,9 +327,7 @@ def GNN_Guard(data, device, arg):
     idx_train, idx_val, idx_test = data.idx_train, data.idx_val, data.idx_test
 
     if torch.is_tensor(adj):
-        # print('test')
         adj = sp.csr_matrix(adj.cpu().numpy())
-        # print(type(adj))
     ''' testing conv '''
 
     model = GNNGuard(nfeat=features.shape[1], nhid=128, nclass=labels.max().item() + 1,
@@ -488,7 +338,7 @@ def GNN_Guard(data, device, arg):
     model.fit(features, adj, labels, idx_train, train_iters=200,
               idx_val=idx_val,
               idx_test=idx_test,
-              verbose=False, attention=True)  # idx_val=idx_val, idx_test=idx_test , model_name=model_name
+              verbose=False, attention=True)
     end = time.perf_counter()
     model.eval()
     output = model.test(idx_test)

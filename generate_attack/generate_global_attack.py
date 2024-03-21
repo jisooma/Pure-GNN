@@ -1,7 +1,3 @@
-# _*_codeing=utf-8_*_
-# @Time:2022/4/1  21:46
-
-# @File:generate_global_attack.py
 import torch, gc
 
 
@@ -57,9 +53,6 @@ def generate_dice_adj(dataset,save_dir):
 
         save_dice_dir = '{}/Dice_{}_adj_{}'.format(adj_dir,dataset, round((i + 1) * 0.05, 3))
         sp.save_npz(save_dice_dir,sp.csr_matrix(modified_adj))
-        # judge_dir(save_perturb_dir)
-        # np.savetxt("{}/Dice_{}_perturbation.txt".format(save_perturb_dir,dataset), np.array(n_perturbations_list))
-
 
 def generate_PGDAttack_adj(dataset,save_dir):
     adj_dir = os.path.join(save_dir, 'PGDAttack', dataset)
@@ -72,13 +65,9 @@ def generate_PGDAttack_adj(dataset,save_dir):
         adj, features, labels = data.adj, data.features, data.labels
         adj,features,labels = preprocess(adj,features,labels,preprocess_adj=False)
         idx_train,idx_val,idx_test = data.idx_train,data.idx_val,data.idx_test
-        # set victim conv
-        # victim_model = set_surrogate_model(data)
-        # Setup Victim Model
         victim_model = GCN(nfeat=features.shape[1], nclass=labels.max().item() + 1,
                            nhid=16, dropout=0.5, weight_decay=5e-4, device=device).to(device)
         victim_model.fit(features, adj, labels, idx_train)
-        # Setup Attack Model
         model = PGDAttack(model=victim_model, nnodes=adj.shape[0], loss_type='CE', device=device,
                           attack_structure=True,attack_features=False).to(device)
         if hasattr(torch.cuda, 'empty_cache'):
@@ -87,15 +76,9 @@ def generate_PGDAttack_adj(dataset,save_dir):
         n_perturbations = int(ptb_rate * (adj.sum() // 2))
         model.attack(features, adj, labels, idx_train,n_perturbations=n_perturbations)
         modified_adj = model.modified_adj.cpu().numpy()
-        # modified_adj_change = modified_adj.detach().numpy()
-        # print(modified_adj)
         save_PGDAttack_dir = '{}/PGDAttack_{}_adj_{}'.format(adj_dir, dataset, round(ptb_rate, 3))
-        # save_PGDAttack_dir = '{}/PGDAttack_{}_features_{}'.format(adj_dir, dataset, round(ptb_rate, 3))
-        # print(save_PGDAttack_dir)
         sp.save_npz(save_PGDAttack_dir, sp.csr_matrix(modified_adj))
-        # break
-        # sp.save_npz('{}/PGDAttack/{}/PGDAttack_{}_adj_{}'.format(save_dir,dataset,dataset, round((i + 1) * 0.05, 3)),
-        #             sp.csr_matrix(modified_adj))
+
 
 def generate_MinMax_adj(dataset,save_dir):
     adj_dir = os.path.join(save_dir, 'MinMax', dataset)
@@ -129,11 +112,8 @@ def generate_Metattack_adj(dataset,save_dir):
     adj_dir = os.path.join(save_dir, 'Metattack', dataset)
     judge_dir(adj_dir)
     data = Dataset_(dataset=dataset)
-    # print(data)
     adj, features, labels = data.adj, data.features, data.labels
     features = sp.csr_matrix(features)
-    # print(type(features))
-    # adj, features, labels = preprocess(adj, features, labels, preprocess_adj=False)
     idx_train, idx_val, idx_test = data.idx_train, data.idx_val, data.idx_test
     idx_unlabeled = np.union1d(idx_val, idx_test)
 
@@ -168,9 +148,7 @@ if __name__=='__main__':
     save_dir = param_dict.get('save_dir')
 
     judge_dir(save_dir)
-    print(save_dir)
     global_attack = list(param_dict.get('global_attack'))
-    print(global_attack)
     for attack in global_attack:
         for dataset in dataset_list:
             if attack =='Dice':

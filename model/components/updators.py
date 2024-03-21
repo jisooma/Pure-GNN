@@ -1,12 +1,6 @@
-# _*_codeing=utf-8_*_
-# @Time:2022/11/14  16:04
-
-# @File:updators.py
-
 import torch
 from torch import Tensor
 import torch.nn.functional as F
-
 
 
 def update_const(inputs: Tensor,)->Tensor:
@@ -24,7 +18,7 @@ def update_pwd_layer_x(inputs: Tensor,attr,x_i,) -> Tensor:
 
 def update_pwd_layer_x_dense_filter(inputs: Tensor,lin,x_i)->Tensor:
     gates = torch.cat([inputs,x_i],dim=1)
-    gates = lin(gates)#
+    gates = lin(gates)
     return torch.sigmoid(gates)*inputs
 
 def update_pwd_layer_x_feature_dense_filter(inputs: Tensor,x_i,a)->Tensor:
@@ -77,12 +71,6 @@ def update_all_layers_x(inputs: Tensor,att_type,x_is,):
         return torch.cat(x_is, dim=-1)
     elif att_type == 'max':
         return torch.stack(x_is, dim=-1).max(dim=-1)[0]
-    # elif att_type == 'lstm':
-    #     x = torch.stack(x_is, dim=1)  # [num_nodes, num_layers, num_channels]
-    #     alpha, _ = self.lstm(x)
-    #     alpha = self.att(alpha).squeeze(-1)  # [num_nodes, num_layers]
-    #     alpha = torch.softmax(alpha, dim=-1)
-    #     return (x * alpha.unsqueeze(-1)).sum(dim=1)
     return None
 
 UPDATORS={
@@ -96,6 +84,4 @@ UPDATORS={
     'linear_x':update_pwd_layer_x_linear,
     'concat_x':update_pwd_layer_x_concat,
     'interpolation_x':update_pwd_layer_x_interpolation,
-    # 'previous_layer_x':update_previous_layer_x,
-    # 'all_layers_x':update_all_layers_x,
 }

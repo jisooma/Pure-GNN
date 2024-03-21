@@ -1,7 +1,3 @@
-# _*_codeing=utf-8_*_
-# @Time:2022/10/23  16:45
-
-# @File:Pure_GNN_Conv.py
 from typing import Optional, Tuple
 
 import torch
@@ -49,9 +45,6 @@ class Pure_GNN_Conv(MessagePassing):
             self.bias = Parameter(torch.Tensor(1),requires_grad=True)
         else:
             self.register_parameter('bias_', None)
-
-        # self.lin_src = Linear(in_channels, out_channels, bias=False, weight_initializer='glorot')
-
         self.message_component = dict(layer_param.get('message_component')).get('name')
         print(self.message_component)
         self.att_src = None
@@ -86,7 +79,6 @@ class Pure_GNN_Conv(MessagePassing):
         else:
             pass
 
-        # print(self.message_component)
 
         self.reset_parameters()
 
@@ -106,7 +98,7 @@ class Pure_GNN_Conv(MessagePassing):
                 edge_weight: OptTensor = None) -> Tensor:
         """"""
         x_norm=None
-        # x = self.lin_src(x)
+
         self.x_i = x
 
         if self.message_component == 'cos_sim':
@@ -118,9 +110,6 @@ class Pure_GNN_Conv(MessagePassing):
                              edge_weight=edge_weight,
                              size=None
                              )
-        # if self.bias is not None:
-        #     out=out+self.bias
-
         return out
 
     def message(self,
@@ -136,9 +125,6 @@ class Pure_GNN_Conv(MessagePassing):
        if self.message_component=='const':
            msg = MESSAGERS[self.message_component](x_j=x_j,)
 
-       # elif self.message_component=='cos_sim':
-       #     msg,alpha = MESSAGERS[self.message_component](beta=self.beta,x_j=x_j, x_norm_i=x_norm_i,x_norm_j=x_norm_j,index=index, ptr=ptr,size_i=size_i,)
-
        elif self.message_component == 'cos_sim':
            msg, alpha = MESSAGERS['cos_sim_1'](x_j=x_j, x_norm_i=x_norm_i, x_norm_j=x_norm_j,
                                                           index=index, ptr=ptr, size_i=size_i, )
@@ -148,8 +134,6 @@ class Pure_GNN_Conv(MessagePassing):
 
        return msg
 
-
-    #
     def aggregate(self, inputs: Tensor, index: Tensor,
                   ptr: Optional[Tensor] = None,
                   dim_size: Optional[int] = None) -> Tensor:
@@ -158,7 +142,7 @@ class Pure_GNN_Conv(MessagePassing):
             return AGGREGATORS['sum'](inputs, index, dim_size)
 
         outs = [AGGREGATORS[aggr](inputs, index, dim_size) for aggr in self.aggregators]
-        out_stack = torch.stack(outs, dim=1)  #
+        out_stack = torch.stack(outs, dim=1)
         if self.with_attention:
             result, aggr_max,alpha = self.attention(out_stack, out_stack, out_stack)  #
             self.alpha = alpha
