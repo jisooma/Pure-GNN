@@ -74,7 +74,7 @@ def aggregate_trimmed(src:Tensor,index:Tensor,dim_size:Optional[int]):
             out[deg_mask] = dense_x[deg_mask, :i].mean(dim=1)
         else:
 
-            min = dense_x[deg_mask, :i].min(dim=1)  # 2
+            min = dense_x[deg_mask, :i].min(dim=1)
             min_indice = min.indices.mode().values
             dense_x[deg_mask, :i].index_select(1, min_indice).fill_(0)
             max = dense_x[deg_mask, :i].max(dim=1)

@@ -83,7 +83,6 @@ def set_attack_model(attack,target_node,surrogate,data,j,device):
     elif attack == 'FGA':
 
         model = FGA(surrogate, nnodes=adj.shape[0], device=device).to(device)
-        # Attack
         model.attack(features, adj, labels, idx_train, target_node, n_perturbations=j)
     elif attack =='IGAttack':
         model = IGAttack(surrogate, nnodes=adj.shape[0], attack_structure=True, attack_features=False, device=device)
@@ -126,7 +125,6 @@ def generate_targeted_attack(save_dir,targeted_attack_list,dataset_list,device):
 
                     surrogate = set_surrogate_model(data_adv,attack,device)
                     target_node = po_edges[i]
-                    # Setup Attack Model
                     modified_adj,modified_features=set_attack_model(attack,target_node,surrogate,data_adv,j+1,device)
                     adj = sp.csr_matrix(modified_adj.A)
                     data_adv.adj = adj

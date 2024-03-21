@@ -137,20 +137,7 @@ def judge_dir(path):
 
 
 def accuracy_with_attack_nodes(output, labels):
-    """Return accuracy of output compared to labels.
 
-    Parameters
-    ----------
-    output : torch.Tensor
-        output from model
-    labels : torch.Tensor or numpy.array
-        node labels
-
-    Returns
-    -------
-    float
-        accuracy
-    """
 
     if not hasattr(labels, '__len__'):
         labels = [labels]
@@ -166,20 +153,7 @@ def accuracy_with_attack_nodes(output, labels):
 
 
 def accuracy_with_error_classify_nodes(output, labels,test_mask):
-    """Return accuracy of output compared to labels.
 
-    Parameters
-    ----------
-    output : torch.Tensor
-        output from model
-    labels : torch.Tensor or numpy.array
-        node labels
-
-    Returns
-    -------
-    float
-        accuracy
-    """
     print(len(test_mask.nonzero()))
 
     if not hasattr(labels, '__len__'):
@@ -228,11 +202,7 @@ def save_output(output,d_name,attention,aggregators,attack=None,ptb=None):
 
 
 def from_scipy_sparse_matrix(A):
-    r"""Converts a scipy sparse matrix to edge indices and edge attributes.
 
-    Args:
-        A (scipy.sparse): A sparse matrix.
-    """
     A = A.tocoo()
     row = torch.from_numpy(A.row).to(torch.long)
     col = torch.from_numpy(A.col).to(torch.long)
@@ -519,12 +489,11 @@ def test_adj(adj_clean,adj_attack):
 def all_attack_nodes():
     save_dir = './attack_nodes/'
     judge_dir(save_dir)
-    for dataset in ['photo']:#'uai','acm','cora_ml','citeseer''photo',
+    for dataset in ['photo']:
         clean_data = Dataset_(dataset=dataset,largest_component=False)
         print(clean_data)
         clean_adj  = clean_data.adj
-        # clean_adj
-        for attack in ['Metattack',]:# 'Metattack'
+        for attack in ['Metattack',]:
             perturbed_data = Dataset_(dataset=dataset, attack=attack, ptb='0.25', )
             perturbed_adj = perturbed_data.adj
             adj_delete_,adj_add_,attacked_node = test_adj(adj_clean=clean_adj,adj_attack=perturbed_adj)

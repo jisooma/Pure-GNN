@@ -81,9 +81,9 @@ class biLiearityAttention(Attention):
 
     def forward(self, queries, keys, values):
 
-        queries = self.W_q(queries)  # queries：(N,M,F)
-        keys = self.W_k(keys)  # keys:(N,M,F)
-        scores = torch.bmm(queries, keys.transpose(1, 2))  # (N,M,M)
+        queries = self.W_q(queries)
+        keys = self.W_k(keys)
+        scores = torch.bmm(queries, keys.transpose(1, 2))
         alpha = self.dropout(torch.softmax(scores, dim=2))
         aggr_max = torch.argmax(alpha, dim=1)
         out = torch.bmm(alpha, values).sum(dim=1)
