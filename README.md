@@ -32,17 +32,6 @@ python ./compare_denfense/defense.py
 python ./model/Pure_GNN_test.py
 ```
 
-## Citation
 
-- If you find this code useful in your research, please cite:
-
-```bash
-@inproceedings{
-  title={Pure-GNN: A Lightweight Purified Graph Neural Network against Adversarial Attacks},
-  author={Yang Xiao,Zhixiu Ma,Weipeng Huang,Cheng Qiao, Dalin Zhang, Qingqi Pei and Kenneth
-N. Brown},
-  year={2024}
-}
-```
 
 
